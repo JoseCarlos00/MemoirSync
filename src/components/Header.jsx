@@ -1,0 +1,1 @@
+// Encabezado del chat

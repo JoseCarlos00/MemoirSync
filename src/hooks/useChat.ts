@@ -1,0 +1,1 @@
+// Hook para la lógica del chat
