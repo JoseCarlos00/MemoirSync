@@ -1,1 +1,0 @@
-// Vista principal del chat
