@@ -1,9 +1,5 @@
-interface Message {
-	_id: string;
-	content: string;
-	timestamp: string;
-	sender: 'me' | string; // 'me' o el ID/nombre de otro usuario
-}
+import { type Message } from '../interfaces/message';
+
 
 interface ChatBubbleProps {
 	message: Message;
@@ -19,7 +15,19 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           ${isMe ? 'bg-green-500 text-white rounded-br-none' : 'bg-gray-200 text-black rounded-bl-none'}
         `}
 			>
-				<p className='text-sm'>{message.content}</p>
+				<p className='text-sm'>{
+					message.type === 'text'
+						? message.content
+						: message.type === 'image'
+							? <img src={message.mediaUrl} alt={message.caption || 'Imagen'} className='max-w-full rounded' />
+							: message.type === 'audio'
+								? <audio controls src={message.mediaUrl} />
+								: message.type === 'video'
+									? <video controls src={message.mediaUrl} />
+									: message.type === 'sticker'
+										? <img src={message.mediaUrl} alt='Sticker' className='max-w-full rounded' />
+										: 'Tipo de mensaje no soportado'
+					}</p>
 				<p className='text-[10px] text-right mt-1 opacity-70'>
 					{new Date(message.timestamp).toLocaleTimeString([], {
 						hour: '2-digit',

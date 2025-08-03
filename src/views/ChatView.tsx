@@ -65,15 +65,17 @@ export default function ChatView() {
 	return (
 		<>
 			<h1>Chat</h1>
+			<p className='text-sm text-gray-500 mb-2'>
+				{messages.length} {messages.length === 1 ? 'mensaje' : 'mensajes'}
+			</p>
 
 			<div
 				ref={containerRef}				
 				className='flex flex-col-reverse overflow-y-auto h-[calc(100vh-120px)] px-4 py-2'
 			>
-				{/* El backend ya envía los mensajes en orden descendente, y flex-col-reverse se encarga de la vista. No es necesario .reverse() */}
 				{messages.map((msg) => (
 					<ChatBubble
-						key={msg._id} // Usar un ID único y estable
+						key={msg._id} 
 						message={msg}
 					/>
 				))}
