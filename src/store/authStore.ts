@@ -1,9 +1,27 @@
 import { create } from 'zustand';
 
-export const useAuthStore = create((set) => ({
-	accessToken: null,
-	user: null,
+interface User {
+  _id: string;
+  username: string;
+  // ...otras propiedades
+}
 
-	login: ({ accessToken, user }) => set({ accessToken, user }),
-	logout: () => set({ accessToken: null, user: null }),
+interface AuthState {
+  accessToken: string | null;
+  user: User | null;
+  isInitializing: boolean; // Para saber si estamos comprobando el token inicial
+  isAuthenticated: boolean; // Computed property to check if the user is authenticated
+  login: (data: { accessToken: string; user: User }) => void;
+  logout: () => void;
+  setInitializing: (status: boolean) => void;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  accessToken: null,
+  user: null,
+  isInitializing: true, // Empezamos en true para forzar la comprobación
+  isAuthenticated: false, // Computed property to check if the user is authenticated
+  login: ({ accessToken, user }) => set({ accessToken, user, isInitializing: false, isAuthenticated: true }),
+  logout: () => set({ accessToken: null, user: null }),
+  setInitializing: (status) => set({ isInitializing: status }),
 }));

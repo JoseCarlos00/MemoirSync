@@ -1,5 +1,14 @@
-// src/components/ChatBubble.jsx
-export default function ChatBubble({ message }) {
+interface Message {
+	_id: string;
+	content: string;
+	timestamp: string;
+	sender: 'me' | string; // 'me' o el ID/nombre de otro usuario
+}
+
+interface ChatBubbleProps {
+	message: Message;
+}
+export default function ChatBubble({ message }: ChatBubbleProps) {
 	const isMe = message.sender === 'me';
 
 	return (

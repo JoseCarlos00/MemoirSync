@@ -1,63 +1,41 @@
-// src/hooks/useChat.js
+import { useCallback } from 'react';
 import { useChatStore } from '../store/chatStore';
 import api from '../services/api';
 
+interface FetchMessagesOptions {
+	limit: number;
+	offset: number;
+	startDate?: string;
+	endDate?: string;
+}
+
 export function useChat() {
-	const { messages, loading, setMessages, appendMessages, setLoading, clearMessages } = useChatStore();
+	const { messages, loading, setMessages, addMessages, setLoading, setTotalMessages } = useChatStore();
+	const hasMore = useChatStore((state) => state.messages.length < state.totalMessages);
 
-	// Obtener mensajes con filtros
-	const fetchMessages = async ({ startDate, endDate, limit = 20, page = 1 }) => {
+	const fetchMessages = useCallback(async (options: FetchMessagesOptions) => {
+		setLoading(true);
 		try {
-			setLoading(true);
-
-			const params = {
-				limit,
-				page,
-			};
-
-			if (startDate) params.start_date = startDate;
-			if (endDate) params.end_date = endDate;
-
-			const response = await api.get('/messages', { params });
-
-			setMessages(response.data.data || []);
-		} catch (error) {
-			console.error('Error al obtener mensajes:', error);
-			throw error;
+			const { data } = await api.get('/messages', { params: options });
+			console.log('Fetched messages:', data);
+			setMessages(data.messages); // primera carga
+			setTotalMessages(data.total); // establecer el total de mensajes
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [setLoading, setMessages, setTotalMessages]);
 
-	// Cargar más mensajes (scroll infinito, por ejemplo)
-	const fetchMoreMessages = async ({ startDate, endDate, limit = 20, page = 2 }) => {
+	const fetchMoreMessages = useCallback(async (options: FetchMessagesOptions) => {
+		setLoading(true);
 		try {
-			setLoading(true);
-
-			const params = {
-				limit,
-				page,
-			};
-
-			if (startDate) params.start_date = startDate;
-			if (endDate) params.end_date = endDate;
-
-			const response = await api.get('/messages', { params });
-
-			appendMessages(response.data.data || []);
-		} catch (error) {
-			console.error('Error al cargar más mensajes:', error);
-			throw error;
+			const { data } = await api.get('/messages', { params: options });
+			console.log('Fetched more messages:', data);
+			addMessages(data.messages); // agregar al inicio
+			setTotalMessages(data.total); // actualizar el total de mensajes
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [setLoading, addMessages, setTotalMessages]);
 
-	return {
-		messages,
-		loading,
-		fetchMessages,
-		fetchMoreMessages,
-		clearMessages,
-	};
+	return { messages, fetchMessages, fetchMoreMessages, loading, hasMore };
 }
