@@ -1,12 +1,17 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import './index.css'
+import './styles/tailwind.css';
+
+
 import App from './App.tsx'
 
 // Import views
-import ChatView from './views/ChatView.tsx'
-import LoginView from './views/LoginView.tsx'
+import ChatView from './views/ChatView'
+import LoginView from './views/LoginView'
+import NotFoundPage from './views/NotFoundPage'
 
 const router = createBrowserRouter([
 	{
@@ -20,6 +25,10 @@ const router = createBrowserRouter([
 	{
 		path: '/chat',
 		element: <ChatView />,
+	},
+	{
+		path: '*',
+		element: <NotFoundPage />,
 	},
 ]);
 

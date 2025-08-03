@@ -1,9 +1,12 @@
+import LoginForm from '../components/LoginForm'
+import UserBar from '../components/UserBar';
 
 function LoginView() {
   return (
   <>
     <h1>Login View</h1>
-    <p>Please log in to continue.</p>
+    <UserBar />
+    <LoginForm />
   </>  )
 }
 
