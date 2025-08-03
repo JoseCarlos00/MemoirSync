@@ -1,23 +1,35 @@
-import { Link } from "react-router-dom"
+import { useEffect, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import api from './services/api';
+import { useAuthStore } from './store/authStore';
 
-function App() {
-  return (
-		<>
-			<h1 className='text-3xl font-bold underline'>Hello world!</h1>
+export default function App() {
+  const login = useAuthStore((state) => state.login);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-			<ul>
-				<li>
-					<Link to='/'>Home</Link>
-				</li>
-				<li>
-					<Link to='/login'>Login</Link>
-				</li>
-				<li>
-					<Link to='/chat'>Chat</Link>
-				</li>
-			</ul>
-		</>
-	);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+				console.log('Checking auth...'); // Debugging line to track auth check);
+				
+        const { data } = await api.post('/auth/refresh');
+				console.log(`Refreshing session:`, data); // Debugging line to check the token
+				
+        login({ accessToken: data.accessToken, user: data.payload });
+      } catch (err) {
+        console.warn('Sesión no válida');
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) return <p>Cargando...</p>;
+
+  return <Outlet />;
 }
 
-export default App
