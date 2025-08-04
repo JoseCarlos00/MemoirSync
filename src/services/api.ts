@@ -2,7 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const api = axios.create({
-	baseURL: 'https://192.168.1.10:3000/api',
+	// baseURL: 'https://192.168.1.10:3000/api',
+	baseURL: 'https://localhost:3000/api',
 	withCredentials: true, // Necesario para enviar las cookies HttpOnly
 });
 
