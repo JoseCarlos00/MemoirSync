@@ -1,6 +1,10 @@
 import { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/ChatBubble';
+// import Header from '../components/Header'
+import HeaderChat from '../components/HeaderChat'
+
+import '../views/ChatView.css'; // Asegúrate de que la ruta sea correcta
 
 export default function ChatView() {
 	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore } = useChat();
@@ -63,25 +67,23 @@ export default function ChatView() {
 	}, [messages, isInitialLoad]);
 
 	return (
-		<>
-			<h1>Chat</h1>
-			<p className='text-sm text-gray-500 mb-2'>
-				{messages.length} {messages.length === 1 ? 'mensaje' : 'mensajes'}
-			</p>
+		<div className='bg-chat-background text-gray-200 view-chat-container'>
+			{/* <Header /> */}
+			<HeaderChat messagesTotal={messages.length} />
 
 			<div
-				ref={containerRef}				
-				className='flex flex-col-reverse overflow-y-auto h-[calc(100vh-120px)] px-4 py-2'
+				ref={containerRef}
+				className='flex flex-col-reverse overflow-y-auto h-[calc(100vh-68px)] px-4 py-2 max-w-2xl mx-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
 			>
 				{messages.map((msg) => (
 					<ChatBubble
-						key={msg._id} 
+						key={msg._id}
 						message={msg}
 					/>
 				))}
 
-				{loading && <div className='text-center text-sm text-gray-500 py-2'>Cargando mensajes...</div>}
+				{loading && <div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>}
 			</div>
-		</>
+		</div>
 	);
 }

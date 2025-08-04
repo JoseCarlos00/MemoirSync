@@ -12,10 +12,10 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 			<div
 				className={`
           max-w-[70%] px-4 py-2 rounded-lg shadow
-          ${isMe ? 'bg-green-500 text-white rounded-br-none' : 'bg-gray-200 text-black rounded-bl-none'}
+          ${isMe ? 'bg-chat-sent text-white rounded-br-none' : 'bg-chat-received text-gray-200 rounded-bl-none'}
         `}
 			>
-				<p className='text-sm'>{
+				<p className='text-sm text-chat-text'>{
 					message.type === 'text'
 						? message.content
 						: message.type === 'image'
