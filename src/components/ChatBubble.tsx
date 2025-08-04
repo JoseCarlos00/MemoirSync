@@ -32,6 +32,8 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 					{new Date(message.timestamp).toLocaleTimeString([], {
 						hour: '2-digit',
 						minute: '2-digit',
+						timeZone: 'America/Mexico_City',
+						hour12: true,
 					})}
 				</p>
 			</div>

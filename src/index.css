@@ -1,30 +1,11 @@
 @import "tailwindcss";
+@import './styles/tailwind.css';
 
 :root {
   --white-rgb: 255, 255, 255;
   --black-rgb: 0, 0, 0;
 }
 
-@theme {
-  --color-*: initial;
-  --color-chat-background: #756ab7;
-  --color-chat-panel: #ff7da3;
-  --color-chat-panel-text: #fff;
-  --color-chat-sent: #a56cc1;
-  --color-chat-received: #8258fd;
-  --color-chat-input: #2c2c40;
-  --color-chat-border: #5e5e7a;
-  --color-chat-button: #c97ac7;
-  --color-chat-button-hover: #a35ba3;
-  --color-chat-admin: #e682b9;
-  --color-chat-text: #f1aaff;
-}
-
-.color1 {color: #1306fb;}
-.color2 {color: #4b2ffc;}
-.color3 {color: #8258fd;}
-.color4 {color: #ba81fe;}
-.color5 {color: #f1aaff;}
 
 
 /* Scrollbar delgado y transparente */

@@ -1,0 +1,13 @@
+@theme  {
+  --color-chat-background: #756ab7;
+  --color-chat-panel: #ff7da3;
+  --color-chat-panel-text: #fff;
+  --color-chat-sent: #a56cc1;
+  --color-chat-received: #8258fd;
+  --color-chat-input: #2c2c40;
+  --color-chat-border: #5e5e7a;
+  --color-chat-button: #c97ac7;
+  --color-chat-button-hover: #a35ba3;
+  --color-chat-admin: #e682b9;
+  --color-chat-text: #f1aaff;
+}
