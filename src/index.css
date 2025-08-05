@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import './styles/tailwind.css';
+@import './styles/tailwind.tw.css';
 
 :root {
   --white-rgb: 255, 255, 255;
