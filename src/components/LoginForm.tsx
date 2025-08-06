@@ -4,7 +4,7 @@ import api from '../services/api';
 
 export default function LoginForm() {
 	const login = useAuthStore((state) => state.login);
-	const [username, setUsername] = useState('user1234');
+	const [username, setUsername] = useState('admin');
 	const [password, setPassword] = useState('password');
 	const [error, setError] = useState(null);
 
@@ -16,8 +16,8 @@ export default function LoginForm() {
 				password,
 			});
 
-			const { accessToken, payload } = response.data;
-			console.log({ accessToken, payload }); // Debugging line to check the response
+			const { accessToken, payload, message } = response.data;
+			console.log({ accessToken, payload, message }); // Debugging line to check the response
 			
 			login({ accessToken, user: payload });
 

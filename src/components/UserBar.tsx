@@ -7,7 +7,7 @@ export default function UserBar() {
   return (
     <div className="flex items-center justify-between bg-gray-100 p-2">
       <span className="text-sm text-gray-700">
-        {user ? `Usuario: ${user.username}` : 'No autenticado'}
+        {user ? `Usuario: ${user.name}` : 'No autenticado'}
       </span>
       {user && (
         <button
