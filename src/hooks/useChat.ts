@@ -20,6 +20,8 @@ export function useChat() {
 			console.log('Fetched messages:', data);
 			setMessages(data.messages); // primera carga
 			setTotalMessages(data.total); // establecer el total de mensajes
+		} catch (error) {
+				console.error('Error fetching messages:', error);
 		} finally {
 			setLoading(false);
 		}
@@ -32,6 +34,8 @@ export function useChat() {
 			console.log('Fetched more messages:', data);
 			addMessages(data.messages); // agregar al inicio
 			setTotalMessages(data.total); // actualizar el total de mensajes
+		} catch (error) {
+			console.error('Error fetching more messages:', error);
 		} finally {
 			setLoading(false);
 		}

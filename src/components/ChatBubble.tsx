@@ -15,7 +15,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
           ${isMe ? 'bg-chat-sent text-white rounded-br-none' : 'bg-chat-received text-gray-200 rounded-bl-none'}
         `}
 			>
-				<p className='text-sm text-chat-text'>{
+				<p className='text-sm text-white'>{
 					message.type === 'text'
 						? message.content
 						: message.type === 'image'
