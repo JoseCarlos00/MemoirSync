@@ -1,49 +1,36 @@
-import { useEffect, useRef, useLayoutEffect, useState } from 'react';
+import { useEffect, useRef, useLayoutEffect } from 'react';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/ChatBubble';
-// import Header from '../components/Header'
-import HeaderChat from '../components/HeaderChat'
+import HeaderChat from '../components/HeaderChat';
 
-import '../views/ChatView.css'; 
+import '../views/ChatView.css';
 
 export default function ChatView() {
 	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore } = useChat();
 	const containerRef = useRef<HTMLDivElement>(null);
+	const scrollRef = useRef({ prevScrollHeight: 0 });
+	const isInitialLoad = useRef(true);
 
-	// Almacena la altura del scroll antes de cargar más mensajes para poder restaurar la posición.
-	const scrollRef = useRef({
-		prevScrollHeight: 0,
-	});
-
-	// Sirve para saber si es la primera carga y así hacer scroll hasta abajo.
-	const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-	// Carga inicial de mensajes
+	// Carga inicial de mensajes al montar el componente
 	useEffect(() => {
 		fetchMessages({
-			limit: 5,
+			limit: 30,
 			offset: 0,
 		});
-	}, [fetchMessages]); // fetchMessages es estable gracias a useCallback.
+	}, [fetchMessages]);
 
-	// Efecto para manejar el scroll y la carga de más mensajes
+	// Lógica para detectar el scroll hacia arriba y cargar más mensajes
 	useEffect(() => {
 		const el = containerRef.current;
-		if (!el) return;
+		if (!el || !hasMore || loading) return;
 
 		const handleScroll = () => {
-			// Evitar peticiones si ya se está cargando o no hay más mensajes.
-			if (loading || !hasMore) return;
-
-			// Cargar más cuando el scroll está cerca de la parte superior
-			if (el.scrollTop < 20) {
-				// Guardar la altura del scroll ANTES de pedir más mensajes.
+			// Si el scroll está cerca de la parte superior, carga más mensajes
+			if (el.scrollTop < 100) {
 				scrollRef.current.prevScrollHeight = el.scrollHeight;
 
-				const currentOffset = messages.length ;
-				console.log('currentOffset', currentOffset);
-				
-				fetchMoreMessages({ limit: 5, offset: currentOffset });
+				const currentOffset = messages.length;
+				fetchMoreMessages({ limit: 30, offset: currentOffset });
 			}
 		};
 
@@ -51,43 +38,46 @@ export default function ChatView() {
 		return () => el.removeEventListener('scroll', handleScroll);
 	}, [loading, hasMore, messages.length, fetchMoreMessages]);
 
-	// Efecto para ajustar la posición del scroll después de que se carguen los mensajes.
+	// Efecto para ajustar la posición del scroll después de que se carguen nuevos mensajes
 	useLayoutEffect(() => {
 		const el = containerRef.current;
 		if (!el) return;
 
-		if (isInitialLoad && messages.length > 0) {
-			// En la carga inicial, mover el scroll hasta el final (el mensaje más nuevo).
+		if (isInitialLoad.current && messages.length > 0) {
+			// En la primera carga, desplaza hasta el final de la conversación
 			el.scrollTop = el.scrollHeight;
-			setIsInitialLoad(false);
+			isInitialLoad.current = false;
 		} else if (scrollRef.current.prevScrollHeight > 0) {
-			// Después de cargar más, restaurar la posición del scroll.
+			// Después de cargar mensajes adicionales, restaura la posición del scroll
 			const newHeight = el.scrollHeight;
-			el.scrollTop += newHeight - scrollRef.current.prevScrollHeight;
-			scrollRef.current.prevScrollHeight = 0; // Resetear para la próxima carga.
+			const adjustment = newHeight - scrollRef.current.prevScrollHeight;
+			el.scrollTop = el.scrollTop + adjustment;
+			scrollRef.current.prevScrollHeight = 0;
 		}
-	}, [messages, isInitialLoad]);
-
-	console.log('messages', messages);
-	
+	}, [messages.length]);
 
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
-			{/* <Header /> */}
 			<HeaderChat messagesTotal={messages.length} />
 
 			<div
 				ref={containerRef}
-				className='flex flex-col-reverse overflow-y-auto h-[calc(100vh-68px)] px-4 py-2 max-w-2xl mx-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+				className='flex flex-col overflow-y-auto h-[calc(100vh-68px)] px-4 py-2 max-w-2xl mx-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
 			>
-				{messages.map((msg) => (
+				{loading && isInitialLoad.current && (
+					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
+				)}
+
+				{[...messages].reverse().map((msg) => (
 					<ChatBubble
 						key={msg._id}
 						message={msg}
 					/>
 				))}
 
-				{loading && <div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>}
+				{loading && !isInitialLoad.current && (
+					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
+				)}
 			</div>
 		</div>
 	);
