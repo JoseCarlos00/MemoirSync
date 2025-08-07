@@ -3,7 +3,8 @@ import { create } from 'zustand';
 interface User {
   _id: string;
   username: string;
-  // ...otras propiedades
+  name: string;
+  role: string;
 }
 
 interface AuthState {
@@ -22,6 +23,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   isInitializing: true, // Empezamos en true para forzar la comprobación
   isAuthenticated: false, // Computed property to check if the user is authenticated
   login: ({ accessToken, user }) => set({ accessToken, user, isInitializing: false, isAuthenticated: true }),
-  logout: () => set({ accessToken: null, user: null }),
+  logout: () => set({ accessToken: null, user: null, isInitializing: false, isAuthenticated: false }),
   setInitializing: (status) => set({ isInitializing: status }),
 }));

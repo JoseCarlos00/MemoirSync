@@ -4,26 +4,33 @@ import api from '../services/api';
 
 export default function LoginForm() {
 	const login = useAuthStore((state) => state.login);
-	const [username, setUsername] = useState('user1234');
+	const [username, setUsername] = useState('admin');
 	const [password, setPassword] = useState('password');
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<string | null>(null);
 
-	const handleSubmit = async (e) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+
 		try {
+			console.log('Iniciando sesión...');
+			
 			const response = await api.post('/auth/login', {
 				username,
 				password,
 			});
 
-			const { accessToken, payload } = response.data;
-			console.log({ accessToken, payload }); // Debugging line to check the response
+			const { accessToken, message } = response.data;
+			const decoded = JSON.parse(atob(accessToken.split('.')[1]));
+
+			console.log({ accessToken, message, decoded }); // Debugging line to check the response
 			
-			login({ accessToken, user: payload });
+			login({ accessToken, user: decoded });
 
 			setError(null);
-		} catch (err) {
-			console.error(err);
+		} catch (err: any) {
+			console.error('Error en el inicio de sesión:', err);
+			console.log('Respuesta del servidor:', err?.response?.data);
+			
 			setError('Credenciales inválidas');
 		}
 	};

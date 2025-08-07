@@ -4,7 +4,7 @@ import ChatBubble from '../components/ChatBubble';
 // import Header from '../components/Header'
 import HeaderChat from '../components/HeaderChat'
 
-import '../views/ChatView.css'; // Asegúrate de que la ruta sea correcta
+import '../views/ChatView.css'; 
 
 export default function ChatView() {
 	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore } = useChat();
