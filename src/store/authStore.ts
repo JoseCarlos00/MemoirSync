@@ -12,6 +12,7 @@ interface AuthState {
   user: User | null;
   isInitializing: boolean; // Para saber si estamos comprobando el token inicial
   isAuthenticated: boolean; // Computed property to check if the user is authenticated
+  role: string;
   login: (data: { accessToken: string; user: User }) => void;
   logout: () => void;
   setInitializing: (status: boolean) => void;
@@ -20,6 +21,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
+  role: 'user',
   isInitializing: true, // Empezamos en true para forzar la comprobación
   isAuthenticated: false, // Computed property to check if the user is authenticated
   login: ({ accessToken, user }) => set({ accessToken, user, isInitializing: false, isAuthenticated: true }),
