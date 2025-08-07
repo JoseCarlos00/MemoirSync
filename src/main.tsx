@@ -1,19 +1,18 @@
-import { createRoot } from 'react-dom/client'
+import { createRoot } from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
-import './index.css'
+import './index.css';
 
-
-import App from './App.tsx'
+import App from './App.tsx';
 
 // Import views
 import RequireRole from './components/RequireRole'; // Importar el nuevo componente
-import ChatView from './views/ChatView'
-import LoginView from './views/LoginView'
-import NotFoundPage from './views/NotFoundPage'
-import HomePage from './views/HomePage'
+import ChatView from './views/ChatView';
+import LoginView from './views/LoginView';
+import NotFoundPage from './views/NotFoundPage';
+import HomePage from './views/HomePage';
 import UnauthorizedView from './views/UnauthorizedView';
-
+import AdminUpload from './views/AdminUpload.tsx';
 
 const router = createBrowserRouter([
 	{
@@ -33,7 +32,10 @@ const router = createBrowserRouter([
 				// Rutas solo para 'admin'
 				element: <RequireRole allowedRoles={['admin']} />,
 				children: [
-					// Ejemplo: { path: '/admin/dashboard', element: <AdminDashboard /> },
+					{
+						path: '/admin/AdminUpload',
+						element: <AdminUpload />,
+					},
 				],
 			},
 		],
