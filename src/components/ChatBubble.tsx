@@ -1,25 +1,28 @@
 import { type Message } from '../interfaces/message';
 
-
 interface ChatBubbleProps {
 	message: Message;
 }
+
 export default function ChatBubble({ message }: ChatBubbleProps) {
 	const isMe = message.sender === 'me';
 
+	const containerClass = isMe ? 'justify-end' : 'justify-start';
+	const tailPositionClass = isMe ? '-right-2' : '-left-2';
+	const bubbleClass = isMe
+		? 'bg-chat-sent text-white rounded-tr-none'
+		: 'bg-chat-received text-gray-200 rounded-tl-none';
+	const tailColorClass = isMe ? 'text-chat-sent' : 'text-chat-received';
+
 	return (
-		<div className={`flex relative mb-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-			<span className={`absolute w-2 h-3 z-5 ${isMe ? '-right-2' : '-left-2'}`}>
+		<div className={`flex relative mb-2 ${containerClass}`}>
+			{/* Burbuja de flecha */}
+			<span className={`absolute w-2 h-3 z-5 ${tailPositionClass}`}>
 				<svg
 					viewBox='0 0 8 13'
 					height='13'
 					width='8'
-					preserveAspectRatio='xMidYMid meet'
-					version='1.1'
-					x='0px'
-					y='0px'
-					enable-background='new 0 0 8 13'
-					className={`z-10 ${isMe ? 'text-chat-sent' : 'text-chat-received'}`}
+					className={`z-10 ${tailColorClass}`}
 				>
 					{isMe ? (
 						<>
@@ -46,44 +49,10 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 					)}
 				</svg>
 			</span>
-			<div
-				className={`
-          max-w-[70%] px-4 py-2 rounded-lg shadow relative
-          ${isMe ? 'bg-chat-sent text-white rounded-tr-none' : 'bg-chat-received text-gray-200 rounded-tl-none'}
-        `}
-			>
-				<p className='text-sm text-white'>
-					{message.type === 'text' ? (
-						message.content
-					) : message.type === 'image' ? (
-						<img
-							src={message.mediaUrl}
-							alt={message.caption || 'Imagen'}
-							className='max-w-full rounded'
-						/>
-					) : message.type === 'audio' ? (
-						<audio
-							controls
-							src={message.mediaUrl}
-						/>
-					) : message.type === 'video' ? (
-						<video
-							controls
-							src={message.mediaUrl}
-						/>
-					) : message.type === 'sticker' ? (
-						<figure>
-							<img
-								src={message.mediaUrl}
-								alt='Sticker'
-								className='max-w-full rounded'
-							/>
-							{message.caption && <figcaption>{message.caption}</figcaption>}
-						</figure>
-					) : (
-						'Tipo de mensaje no soportado'
-					)}
-				</p>
+
+			{/* Contenedor del mensaje */}
+			<div className={`max-w-[70%] px-4 py-2 rounded-lg shadow relative ${bubbleClass}`}>
+				<p className='text-sm text-white'>{renderMessageContent(message)}</p>
 				<p className='text-[10px] text-right mt-1 opacity-70'>
 					{new Date(message.timestamp).toLocaleTimeString([], {
 						hour: '2-digit',
@@ -95,4 +64,46 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 			</div>
 		</div>
 	);
+}
+
+function renderMessageContent(message: Message) {
+	switch (message.type) {
+		case 'text':
+			return message.content;
+		case 'image':
+			return (
+				<img
+					src={message.mediaUrl}
+					alt={message.caption || 'Imagen'}
+					className='max-w-full rounded'
+				/>
+			);
+		case 'audio':
+			return (
+				<audio
+					controls
+					src={message.mediaUrl}
+				/>
+			);
+		case 'video':
+			return (
+				<video
+					controls
+					src={message.mediaUrl}
+				/>
+			);
+		case 'sticker':
+			return (
+				<figure>
+					<img
+						src={message.mediaUrl}
+						alt='Sticker'
+						className='max-w-full rounded'
+					/>
+					{message.caption && <figcaption>{message.caption}</figcaption>}
+				</figure>
+			);
+		default:
+			return 'Tipo de mensaje no soportado';
+	}
 }
