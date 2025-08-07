@@ -1,7 +1,19 @@
+import api from "../services/api"
 import { useAuthStore } from "../store/authStore"
 
 export default function Header() {
 	const { user, logout } = useAuthStore();
+
+
+	const handleLogout = async () => {
+		logout();
+		try {
+			const response = await api.post('/auth/logout');
+			console.log('Logout exitoso:', response.data);
+		} catch (error: any) {
+			console.error('Error al cerrar sesión:', error?.response?.data || error?.message);
+		}
+	};
 
 
   return (
@@ -13,8 +25,8 @@ export default function Header() {
 				<div className='flex items-center justify-between mt-4'>
 					<p>User: {user.name}</p>
 					<button
-						onClick={logout}
-						className='bg-red-500 text-white text-xs px-3 py-1 rounded'
+						onClick={handleLogout}
+						className='bg-red-500 text-white text-xs px-3 py-1 rounded cursor-pointer'
 					>
 						Cerrar sesión
 					</button>
