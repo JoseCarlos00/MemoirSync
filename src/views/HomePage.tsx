@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Header from '../components/Header';
 import { useRedirectIfAuthenticated } from '../hooks/redirected'
 import { useAuthStore } from '../store/authStore'
@@ -17,10 +18,19 @@ export default function HomePage() {
 
 			<ul>
 				<li>
-					<a href='/login'>Login</a>
+					<Link to='/login'>Login</Link>
 				</li>
 				<li>
-					<a href='/chat'>Mensajes</a>
+					<Link to='/chat'>Chat</Link>
+				</li>
+				<li>
+					<Link to='/admin/AdminUpload'>Admin Upload</Link>
+				</li>
+				<li>
+					<Link to='/unauthorized'>Unauthorized</Link>
+				</li>
+				<li>
+					<Link to='/not-found'>Not Found</Link>
 				</li>
 			</ul>
 		</div>
