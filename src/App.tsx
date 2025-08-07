@@ -1,5 +1,3 @@
-// En el componente raíz de tu aplicación, por ejemplo App.tsx
-
 import { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
@@ -9,10 +7,14 @@ function App() {
   const { login, logout, setInitializing, isInitializing, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
+  console.log('[App.tsx] isInitializing:', isInitializing);
+  console.log('[App.tsx] isAuthenticated:', isAuthenticated);
+  
+
   useEffect(() => {
 		const refreshToken = async () => {
 			try {
-				const response = await api('auth/refresh');
+				const response = await api.post('auth/refresh');
 				const { accessToken } = response.data;
 				const decoded = JSON.parse(atob(accessToken.split('.')[1]));
 

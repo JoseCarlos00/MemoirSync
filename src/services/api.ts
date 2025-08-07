@@ -33,7 +33,7 @@ api.interceptors.response.use(
 
 			try {
 				// Hacer petición al endpoint de refresh
-				const res = await axios.get(`${api.defaults.baseURL}/auth/refresh`, {
+				const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
 					withCredentials: true,
 				});
 
