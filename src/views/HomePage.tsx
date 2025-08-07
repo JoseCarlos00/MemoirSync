@@ -11,25 +11,25 @@ export default function HomePage() {
 	if (isInitializing) return <div>Cargando...</div>;
 
 	return (
-		<div>
+		<div className='bg-gray-900 min-h-screen text-white flex flex-col p-4'>
 			<Header />
 			<h1>Welcome to the Home Page</h1>
 			<p>This is the main content of the home page.</p>
 
-			<ul>
-				<li>
+			<ul className='mt-4 space-y-2 flex flex-col gap-1.5 border border-amber-50 w-min px-2 py-1 rounded-md'>
+				<li className="text-teal-400 font-bold hover:text-teal-500">
 					<Link to='/login'>Login</Link>
 				</li>
-				<li>
+				<li className="text-teal-400 font-bold hover:text-teal-500">
 					<Link to='/chat'>Chat</Link>
 				</li>
-				<li>
+				<li className="text-teal-400 font-bold hover:text-teal-500">
 					<Link to='/admin/AdminUpload'>Admin Upload</Link>
 				</li>
-				<li>
+				<li className="text-teal-400 font-bold hover:text-teal-500">
 					<Link to='/unauthorized'>Unauthorized</Link>
 				</li>
-				<li>
+				<li className="text-teal-400 font-bold hover:text-teal-500">
 					<Link to='/not-found'>Not Found</Link>
 				</li>
 			</ul>
