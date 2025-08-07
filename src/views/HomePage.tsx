@@ -1,16 +1,28 @@
-import Header from "../components/Header"
+import Header from '../components/Header';
+import { useRedirectIfAuthenticated } from '../hooks/redirected'
+import { useAuthStore } from '../store/authStore'
 
 export default function HomePage() {
-  return (
-    <div>
-      <Header />
-      <h1>Welcome to the Home Page</h1>
-      <p>This is the main content of the home page.</p>
+	const { isInitializing } = useAuthStore();
 
-      <ul>
-        <li><a href="/login">Login</a></li>
-        <li><a href="/chat">Mensajes</a></li>
-      </ul>
-    </div>
-  );
+  useRedirectIfAuthenticated({ redirectTo: '/' });
+
+	if (isInitializing) return <div>Cargando...</div>;
+
+	return (
+		<div>
+			<Header />
+			<h1>Welcome to the Home Page</h1>
+			<p>This is the main content of the home page.</p>
+
+			<ul>
+				<li>
+					<a href='/login'>Login</a>
+				</li>
+				<li>
+					<a href='/chat'>Mensajes</a>
+				</li>
+			</ul>
+		</div>
+	);
 }
