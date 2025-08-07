@@ -20,7 +20,6 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   user: null,
-  role: 'user',
   isInitializing: true, // Empezamos en true para forzar la comprobación
   isAuthenticated: false, // Computed property to check if the user is authenticated
   login: ({ accessToken, user }) => set({ accessToken, user, isInitializing: false, isAuthenticated: true }),
