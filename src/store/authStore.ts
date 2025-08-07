@@ -12,7 +12,6 @@ interface AuthState {
   user: User | null;
   isInitializing: boolean; // Para saber si estamos comprobando el token inicial
   isAuthenticated: boolean; // Computed property to check if the user is authenticated
-  role: string;
   login: (data: { accessToken: string; user: User }) => void;
   logout: () => void;
   setInitializing: (status: boolean) => void;
