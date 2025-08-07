@@ -21,7 +21,7 @@ export default function ChatView() {
 	// Carga inicial de mensajes
 	useEffect(() => {
 		fetchMessages({
-			limit: 20,
+			limit: 5,
 			offset: 0,
 		});
 	}, [fetchMessages]); // fetchMessages es estable gracias a useCallback.
@@ -36,12 +36,14 @@ export default function ChatView() {
 			if (loading || !hasMore) return;
 
 			// Cargar más cuando el scroll está cerca de la parte superior
-			if (el.scrollTop < 100) {
+			if (el.scrollTop < 20) {
 				// Guardar la altura del scroll ANTES de pedir más mensajes.
 				scrollRef.current.prevScrollHeight = el.scrollHeight;
 
-				const currentOffset = messages.length;
-				fetchMoreMessages({ limit: 20, offset: currentOffset });
+				const currentOffset = messages.length ;
+				console.log('currentOffset', currentOffset);
+				
+				fetchMoreMessages({ limit: 5, offset: currentOffset });
 			}
 		};
 
@@ -65,6 +67,9 @@ export default function ChatView() {
 			scrollRef.current.prevScrollHeight = 0; // Resetear para la próxima carga.
 		}
 	}, [messages, isInitialLoad]);
+
+	console.log('messages', messages);
+	
 
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
