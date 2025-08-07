@@ -12,7 +12,7 @@ function App() {
   useEffect(() => {
 		const refreshToken = async () => {
 			try {
-				const response = await api('api/refresh');
+				const response = await api('auth/refresh');
 				const { accessToken } = response.data;
 				const decoded = JSON.parse(atob(accessToken.split('.')[1]));
 

@@ -8,13 +8,10 @@ const api = axios.create({
 	timeout: 5000,
 });
 
-// Interceptor para incluir el accessToken automáticamente
+// Interceptor de request: incluye el accessToken automáticamente
 api.interceptors.request.use((config) => {
 	try {
 		const token = useAuthStore.getState().accessToken;
-
-		console.log(`Using access token: ${token}`); // Debugging line to check the token
-
 		if (token) {
 			config.headers.Authorization = `Bearer ${token}`;
 		}
@@ -23,5 +20,43 @@ api.interceptors.request.use((config) => {
 	}
 	return config;
 });
+
+// Interceptor de response: intenta refrescar el token si el accessToken expiró
+api.interceptors.response.use(
+	(response) => response,
+	async (error) => {
+		const originalRequest = error.config;
+
+		// Si el accessToken expiró y no hemos reintentado aún
+		if (error.response?.status === 403 && !originalRequest._retry) {
+			originalRequest._retry = true;
+
+			try {
+				// Hacer petición al endpoint de refresh
+				const res = await axios.get(`${api.defaults.baseURL}/auth/refresh`, {
+					withCredentials: true,
+				});
+
+				const { accessToken } = res.data;
+
+				// Decodificar el nuevo token (sin validarlo, sólo leer payload)
+				const decoded = JSON.parse(atob(accessToken.split('.')[1]));
+
+				// Actualizar el estado global con el nuevo token y usuario
+				useAuthStore.getState().login({ accessToken, user: decoded });
+
+				// Reintentar la petición original con el nuevo token
+				originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+				return api(originalRequest);
+			} catch (refreshError) {
+				// Si falla el refresh token, cerrar sesión
+				useAuthStore.getState().logout();
+				window.location.href = '/login';
+			}
+		}
+
+		return Promise.reject(error);
+	}
+);
 
 export default api;
