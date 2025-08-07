@@ -16,8 +16,8 @@ export default function LoginForm() {
 				password,
 			});
 
-			const { accessToken, payload, message } = response.data;
-			console.log({ accessToken, payload, message }); // Debugging line to check the response
+			const { accessToken, message } = response.data;
+			console.log({ accessToken, message }); // Debugging line to check the response
 			const decoded = JSON.parse(atob(accessToken.split('.')[1]));
 			console.log({ decoded });
 			
