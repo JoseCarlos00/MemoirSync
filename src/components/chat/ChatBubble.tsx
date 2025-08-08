@@ -46,7 +46,7 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
 
   return (
     <div className={`flex relative mb-2 ${containerClass}`}>
-      {showTail && <BubbleTail isMe={isMe} />}
+      {(showTail && message.type !== 'sticker') && <BubbleTail isMe={isMe} />}
       <div
         className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}
       >
