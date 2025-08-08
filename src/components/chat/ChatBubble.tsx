@@ -15,9 +15,10 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
   const isMe = message.sender === "me";
 
   const containerClass = isMe ? "justify-end" : "justify-start";
-  const bubbleClass = isMe
-    ? "bg-chat-sent text-white rounded-tr-none"
-    : "bg-chat-received text-gray-200 rounded-tl-none";
+
+  const bgTypeSticker = ['sticker'].includes(message.type) ? 'bg-transparent shadow-none' : '';
+
+  const bubbleClass = isMe ? `bg-chat-sent text-white rounded-tr-none ${bgTypeSticker}` : `bg-chat-received text-white rounded-tl-none ${bgTypeSticker}`;
 
   const renderMessageContent = () => {
     switch (message.type) {
@@ -40,17 +41,10 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
     <div className={`flex relative mb-2 ${containerClass}`}>
       <BubbleTail isMe={isMe} />
       <div
-        className={`max-w-[70%] px-4 py-2 rounded-lg shadow relative ${bubbleClass}`}
+        className={`max-w-[70%] rounded-lg shadow relative ${bubbleClass}`}
       >
         <div className="text-sm text-white">{renderMessageContent()}</div>
-        <p className="text-[10px] text-right mt-1 opacity-70">
-          {new Date(message.timestamp).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "America/Mexico_City",
-            hour12: true,
-          })}
-        </p>
+        
       </div>
     </div>
   );
