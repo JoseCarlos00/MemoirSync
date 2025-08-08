@@ -7,6 +7,7 @@ import MessageVideo from './ChatBubble/MessageVideo';
 import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
 import { useUser } from '../../hooks/use.user';
+import EmojiPickerComponent from './ChatBubble/EmojiPicker'
 
 interface ChatBubbleProps {
 	message: Message;
@@ -57,6 +58,10 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
 			<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}>
 				<div className='text-sm text-white'>{renderMessageContent()}</div>
 			</div>
+
+      {isAdmin && (
+        <EmojiPickerComponent message={message} />
+      )}
 		</div>
 	);
 }

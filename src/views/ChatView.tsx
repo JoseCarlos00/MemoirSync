@@ -14,7 +14,7 @@ export default function ChatView() {
 	// Carga inicial de mensajes al montar el componente
 	useEffect(() => {
 		fetchMessages({
-			limit: 30,
+			limit: 1,
 			offset: 0,
 		});
 	}, [fetchMessages]);
@@ -30,7 +30,7 @@ export default function ChatView() {
 				scrollRef.current.prevScrollHeight = el.scrollHeight;
 
 				const currentOffset = messages.length;
-				fetchMoreMessages({ limit: 30, offset: currentOffset });
+				// fetchMoreMessages({ limit: 30, offset: currentOffset });
 			}
 		};
 

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import EmojiPicker, { Theme } from 'emoji-picker-react';
+
 import api from "../../../services/api"
 import { type Message } from '../../../interfaces/message'
 
@@ -7,7 +9,7 @@ interface EmojiPickerProps {
 }
 
 
-export default function EmojiPicker({ message }: EmojiPickerProps) {
+export default function EmojiPickerComponent({ message }: EmojiPickerProps) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState(message.reactionEmoji || null);
 	const handleSelectEmoji = async (emoji: string) => {
@@ -21,9 +23,24 @@ export default function EmojiPicker({ message }: EmojiPickerProps) {
 			}
 	};
 
+  const handleReaction = (params: any) => {
+    console.log('Reaction:', params);
+  };
+
+
 	return (
 		<>
 			<div>
+				<div>
+					<EmojiPicker
+						reactionsDefaultOpen={true}
+						onReactionClick={handleReaction}
+            theme={Theme.DARK}
+            skinTonesDisabled={true}
+            allowExpandReactions={false}
+					 />
+				</div>
+
 				{/* Muestra el emoji si existe */}
 				{selectedEmoji && (
 					<span className='absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-1'>
