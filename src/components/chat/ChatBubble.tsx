@@ -11,14 +11,6 @@ interface ChatBubbleProps {
   message: Message;
 }
 
-const messageRenderers = {
-  text: MessageText,
-  image: MessageImage,
-  audio: MessageAudio,
-  video: MessageVideo,
-  sticker: MessageSticker,
-} as const;
-
 export default function ChatBubble({ message }: ChatBubbleProps) {
   const isMe = message.sender === "me";
 
@@ -27,7 +19,22 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
     ? "bg-chat-sent text-white rounded-tr-none"
     : "bg-chat-received text-gray-200 rounded-tl-none";
 
-  const Renderer = messageRenderers[message.type] || UnsupportedMessage;
+  const renderMessageContent = () => {
+    switch (message.type) {
+      case "text":
+        return <MessageText message={message} />;
+      case "image":
+        return <MessageImage message={message} />;
+      case "audio":
+        return <MessageAudio message={message} />;
+      case "video":
+        return <MessageVideo message={message} />;
+      case "sticker":
+        return <MessageSticker message={message} />;
+      default:
+        return <UnsupportedMessage />;
+    }
+  };
 
   return (
     <div className={`flex relative mb-2 ${containerClass}`}>
@@ -35,9 +42,7 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
       <div
         className={`max-w-[70%] px-4 py-2 rounded-lg shadow relative ${bubbleClass}`}
       >
-        <p className="text-sm text-white">
-          <Renderer message={message} />
-        </p>
+        <div className="text-sm text-white">{renderMessageContent()}</div>
         <p className="text-[10px] text-right mt-1 opacity-70">
           {new Date(message.timestamp).toLocaleTimeString([], {
             hour: "2-digit",

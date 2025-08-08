@@ -1,6 +1,6 @@
 import { useEffect, useRef, useLayoutEffect } from 'react';
 import { useChat } from '../hooks/useChat';
-import ChatBubble from '../components/ChatBubble';
+import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat from '../components/HeaderChat';
 
 import '../views/ChatView.css';
