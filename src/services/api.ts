@@ -50,6 +50,7 @@ api.interceptors.response.use(
 				return api(originalRequest);
 			} catch (refreshError) {
 				// Si falla el refresh token, cerrar sesión
+				console.error('Error refreshing token:', refreshError);
 				useAuthStore.getState().logout();
 				window.location.href = '/login';
 			}
