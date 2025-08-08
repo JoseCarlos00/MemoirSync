@@ -34,7 +34,12 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
       case "image":
         return <MessageImage message={message} />;
       case "audio":
-        return <MessageAudio message={message} />;
+        return (
+					<MessageAudio
+						message={message}
+						isMe={isMe}
+					/>
+				);
       case "video":
         return <MessageVideo message={message} />;
       case "sticker":
