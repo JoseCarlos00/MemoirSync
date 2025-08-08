@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
 import api from "../services/api"
 
-export const useRedirectIfAuthenticated = ({ redirectTo }: { redirectTo: string }) => {
+export const useRedirectAuthenticated = ({ redirectTo }: { redirectTo: string }) => {
 	const { isAuthenticated, isInitializing, login, setInitializing } = useAuthStore();
 	const navigate = useNavigate();
 

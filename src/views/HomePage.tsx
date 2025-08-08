@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom'
 import Header from '../components/Header';
-import { useRedirectIfAuthenticated } from '../hooks/redirected'
+import { useRedirectAuthenticated } from '../hooks/useRedirectAuthenticated'
 import { useAuthStore } from '../store/authStore'
 
 export default function HomePage() {
 	const { isInitializing } = useAuthStore();
 
-  useRedirectIfAuthenticated({ redirectTo: '/' });
+  useRedirectAuthenticated({ redirectTo: '/' });
 
 	if (isInitializing) return <div>Cargando...</div>;
 

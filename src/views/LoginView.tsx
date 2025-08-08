@@ -1,13 +1,13 @@
 import LoginForm from '../components/LoginForm';
 import UserBar from '../components/UserBar';
-import { useRedirectIfAuthenticated } from '../hooks/redirected'
+import { useRedirectAuthenticated } from '../hooks/useRedirectAuthenticated'
 import { useAuthStore } from '../store/authStore'
 
 function LoginView() {
   const { isInitializing } = useAuthStore()
   
 	// Si el usuario ya está autenticado, lo redirige a la página principal del chat.
-	useRedirectIfAuthenticated({ redirectTo: '/' });
+	useRedirectAuthenticated({ redirectTo: '/' });
 	
   return (
   <>
