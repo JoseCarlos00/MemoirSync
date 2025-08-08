@@ -9,16 +9,23 @@ import UnsupportedMessage from "./ChatBubble/UnsupportedMessage";
 
 interface ChatBubbleProps {
   message: Message;
+  showTail: boolean;
 }
 
-export default function ChatBubble({ message }: ChatBubbleProps) {
+export default function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
   const isMe = message.sender === "me";
 
   const containerClass = isMe ? "justify-end" : "justify-start";
 
-  const bgTypeSticker = ['sticker'].includes(message.type) ? 'bg-transparent shadow-none' : '';
+  // Clases base para la burbuja
+  const bubbleBaseClass = "max-w-[70%] rounded-lg shadow relative";
+  // Clases específicas del emisor
+  const senderClass = isMe ? "bg-chat-sent" : "bg-chat-received";
 
-  const bubbleClass = isMe ? `bg-chat-sent text-white rounded-tr-none ${bgTypeSticker}` : `bg-chat-received text-white rounded-tl-none ${bgTypeSticker}`;
+  // Clases para el "Tail" (solo si showTail es true)
+  const tailClass = showTail ? (isMe ? "rounded-tr-none" : "rounded-tl-none") : "";
+  // Clases especiales para stickers
+  const stickerClass = message.type === 'sticker' ? 'bg-transparent shadow-none' : 'text-white';
 
   const renderMessageContent = () => {
     switch (message.type) {
@@ -39,12 +46,11 @@ export default function ChatBubble({ message }: ChatBubbleProps) {
 
   return (
     <div className={`flex relative mb-2 ${containerClass}`}>
-      <BubbleTail isMe={isMe} />
+      {showTail && <BubbleTail isMe={isMe} />}
       <div
-        className={`max-w-[70%] rounded-lg shadow relative ${bubbleClass}`}
+        className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}
       >
         <div className="text-sm text-white">{renderMessageContent()}</div>
-        
       </div>
     </div>
   );

@@ -68,12 +68,20 @@ export default function ChatView() {
 					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
 				)}
 
-				{[...messages].reverse().map((msg) => (
-					<ChatBubble
-						key={msg._id}
-						message={msg}
-					/>
-				))}
+				{[...messages].reverse().map((msg, index, arr) => {
+					const prevMessage = arr[index - 1]; // El mensaje siguiente en el array es el anterior en el tiempo
+
+					// Mostrar la cola si es el primer mensaje del grupo o el último del chat
+					const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+
+					return (
+						<ChatBubble
+							key={msg._id}
+							message={msg}
+							showTail={showTail}
+						/>
+					);
+				})}
 
 				{loading && !isInitialLoad.current && (
 					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
