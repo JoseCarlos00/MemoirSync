@@ -4,7 +4,6 @@ import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react
 
 import { EmojiPicker } from 'frimousse';
 
-
 const quickReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 type EmojiPickerProps = {
@@ -13,8 +12,6 @@ type EmojiPickerProps = {
 	onToggle: () => void;
 	onSendReaction: (emoji: string) => void;
 };
-
-
 
 function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
 	return (
@@ -138,10 +135,26 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 							onEmojiSelect={handleFullPickerSelect}
 							className='bg-[#1D1F1F] rounded-lg shadow-lg text-white w-[320px] h-[400px] flex flex-col p-2'
 						>
-							<EmojiPicker.Search className='w-full p-2 mb-2 bg-gray-700/50 rounded-md outline-none placeholder:text-gray-400' placeholder='Buscar emoji...'/>
+							<EmojiPicker.Search
+								className='w-full p-2 mb-2 bg-gray-700/50 rounded-md outline-none placeholder:text-gray-400'
+								placeholder='Buscar emoji...'
+							/>
 							<EmojiPicker.Viewport className='flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
-								<EmojiPicker.Empty className="text-center text-gray-400 pt-4">No se encontraron emojis.</EmojiPicker.Empty>
-								<EmojiPicker.List />
+								<EmojiPicker.Empty className='text-center text-gray-400 pt-4'>
+									No se encontraron emojis.
+								</EmojiPicker.Empty>
+								<EmojiPicker.List
+									components={{
+										Emoji: ({ emoji, ...props }) => (
+											<button
+												className='flex size-9 items-center justify-center rounded-md text-lg data-[active]:bg-neutral-100 dark:data-[active]:bg-neutral-800'
+												{...props}
+											>
+												{emoji.emoji}
+											</button>
+										),
+									}}
+								/>
 							</EmojiPicker.Viewport>
 						</EmojiPicker.Root>
 					)}
