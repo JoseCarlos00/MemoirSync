@@ -11,6 +11,7 @@ interface ChatState {
 	setLoading: (loading: boolean) => void;
 	clearMessages: () => void;
 	setTotalMessages: (total: number) => void;
+	updateMessage: (messageId: string, updates: Partial<Message>) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -27,4 +28,10 @@ export const useChatStore = create<ChatState>((set) => ({
 	setLoading: (loading) => set({ loading }),
 	clearMessages: () => set({ messages: [], totalMessages: 0 }),
 	setTotalMessages: (total) => set({ totalMessages: total }),
+	updateMessage: (messageId, updates) =>
+		set((state) => ({
+			messages: state.messages.map((msg) =>
+				msg._id === messageId ? { ...msg, ...updates } : msg
+			),
+		})),
 }));

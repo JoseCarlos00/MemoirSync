@@ -6,7 +6,7 @@ import HeaderChat from '../components/HeaderChat';
 import '../views/ChatView.css';
 
 export default function ChatView() {
-	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore } = useChat();
+	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore, updateMessage } = useChat();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const scrollRef = useRef({ prevScrollHeight: 0 });
 	const isInitialLoad = useRef(true);
@@ -79,6 +79,7 @@ export default function ChatView() {
 							key={msg._id}
 							message={msg}
 							showTail={showTail}
+							onUpdateMessage={updateMessage}
 						/>
 					);
 				})}

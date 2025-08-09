@@ -14,9 +14,10 @@ import api from '../../services/api'
 interface ChatBubbleProps {
 	message: Message;
 	showTail: boolean;
+	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 }
 
-function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
+function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
@@ -66,16 +67,24 @@ function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
 	};
 
 	const sendReaction = async (emoji: string) => {
-		console.log('Emoji enviado:', emoji);
 		setOpenPickerId(null);
 
+		const originalReaction = message.reactionEmoji;
+		const messageId = message._id;
+
+		// 1. Actualización optimista de la UI
+		onUpdateMessage(messageId, { reactionEmoji: emoji });
+
 		try {
-			const response = api.post('/messages/reaction/', { reactionEmoji : emoji });
-
-			console.log('Respuesta del servidor:', response);
-
+			// 2. Persistir el cambio en el backend
+			// Usamos PATCH para una actualización parcial del recurso del mensaje
+			await api.patch(`/messages/${messageId}`, { reactionEmoji: emoji });
+			// Si la petición es exitosa, no hacemos nada más. La UI ya está actualizada.
 		} catch (error) {
 			console.error('Error al actualizar la reacción:', error);
+			// 3. Rollback: Si falla la petición, revertimos la UI a su estado original.
+			onUpdateMessage(messageId, { reactionEmoji: originalReaction });
+			// Opcional: Mostrar una notificación de error al usuario.
 		}
 	};
 

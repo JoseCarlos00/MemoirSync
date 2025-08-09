@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useChatStore } from '../store/chatStore';
 import api from '../services/api';
+import { type Message } from '../interfaces/message';
 
 interface FetchMessagesOptions {
 	limit: number;
@@ -10,7 +11,7 @@ interface FetchMessagesOptions {
 }
 
 export function useChat() {
-	const { messages, loading, setMessages, addMessages, setLoading, setTotalMessages } = useChatStore();
+	const { messages, loading, setMessages, addMessages, setLoading, setTotalMessages, updateMessage: updateMessageInStore } = useChatStore();
 	const hasMore = useChatStore((state) => state.messages.length < state.totalMessages);
 
 	const fetchMessages = useCallback(async (options: FetchMessagesOptions) => {
@@ -41,5 +42,10 @@ export function useChat() {
 		}
 	}, [setLoading, addMessages, setTotalMessages]);
 
-	return { messages, fetchMessages, fetchMoreMessages, loading, hasMore };
+
+	const updateMessage = useCallback((messageId: string, updates: Partial<Message>) => {
+		updateMessageInStore(messageId, updates);
+	}, [updateMessageInStore]);
+
+	return { messages, fetchMessages, fetchMoreMessages, loading, hasMore, updateMessage };
 }
