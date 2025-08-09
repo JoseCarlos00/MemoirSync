@@ -1,5 +1,6 @@
-import { useState, lazy, Suspense, useEffect, useRef } from 'react';
+import { useState, lazy, Suspense, useEffect, Fragment } from 'react';
 import { type EmojiClickData } from 'emoji-picker-react';
+import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react';
 
 const EmojiPicker = lazy(() => import('emoji-picker-react')); // carga diferida
 
@@ -32,10 +33,19 @@ function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
 }
 
 export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction, isMe }: EmojiPickerProps) {
-	const componentRef = useRef<HTMLDivElement>(null);
 	const [isFullPickerOpen, setIsFullPickerOpen] = useState(false);
 
-	const classPosition = isMe ? '-left-8' : '-right-8';
+	const { refs, floatingStyles } = useFloating({
+		open: isOpen,
+		onOpenChange: onToggle,
+		placement: 'top',
+		whileElementsMounted: autoUpdate,
+		middleware: [
+			offset(10), // Espacio entre el botón y el picker
+			flip(), // Cambia de lado (top/bottom) si no hay espacio
+			shift({ padding: 5 }), // Se desplaza para mantenerse en pantalla
+		],
+	});
 
 	useEffect(() => {
 		// Resetear el estado interno si el picker se cierra desde el padre
@@ -46,8 +56,16 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
-			// Si el picker está abierto y se hace clic fuera de su contenedor, se cierra.
-			if (isOpen && componentRef.current && !componentRef.current.contains(event.target as Node)) {
+			const target = event.target as Node;
+			if (
+				isOpen &&
+				refs.floating.current &&
+				!refs.floating.current.contains(target) &&
+				refs.reference.current &&
+				// Se comprueba que 'contains' existe para evitar errores con VirtualElement
+				'contains' in refs.reference.current &&
+				!refs.reference.current.contains(target)
+			) {
 				onToggle();
 			}
 		}
@@ -55,7 +73,7 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [isOpen, onToggle]);
+	}, [isOpen, onToggle, refs]);
 
 	const handleEmojiSelect = (emoji: string) => {
 		onSendReaction(emoji);
@@ -67,21 +85,21 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 	};
 
 	return (
-		<div
-			ref={componentRef}
-			className={`absolute top-0 z-10 ${classPosition}`}
-		>
+		<Fragment>
 			<button
+				ref={refs.setReference}
 				onClick={onToggle}
-				className='p-1 transition-opacity duration-200 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100'
+				className='absolute top-0 bottom-0 p-1 transition-opacity duration-200 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100'
+				style={isMe ? { left: '-2rem' } : { right: '-2rem' }}
 			>
 				<EmojiIcon />
 			</button>
 
 			{isOpen && (
 				<div
-					className={`absolute z-20 ${isMe ? 'right-0' : 'left-0'}`}
-					style={{ bottom: 'calc(100% + 5px)' }}
+					ref={refs.setFloating}
+					style={floatingStyles}
+					className='z-20'
 				>
 					{!isFullPickerOpen ? (
 						<div className='flex gap-1 p-1 bg-[#1D1F1F] rounded-full shadow-lg'>
@@ -124,6 +142,6 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 					)}
 				</div>
 			)}
-		</div>
+		</Fragment>
 	);
 }

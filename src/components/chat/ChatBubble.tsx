@@ -72,7 +72,7 @@ function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
 		<div className={`flex relative mb-2 group ${containerClass}`}>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
-			<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}>
+			<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} relative`}>
 				{/* Emoji Picker */}
 				{isAdmin && (
 					<EmojiPickerComponent
