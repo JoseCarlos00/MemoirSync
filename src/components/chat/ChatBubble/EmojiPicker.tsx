@@ -32,7 +32,7 @@ function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
 }
 
 export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction, isMe }: EmojiPickerProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
+	const componentRef = useRef<HTMLDivElement>(null);
 	const [isFullPickerOpen, setIsFullPickerOpen] = useState(false);
 
 	const classPosition = isMe ? '-left-8' : '-right-8';
@@ -47,7 +47,7 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
 			// Si el picker está abierto y se hace clic fuera de su contenedor, se cierra.
-			if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+			if (isOpen && componentRef.current && !componentRef.current.contains(event.target as Node)) {
 				onToggle();
 			}
 		}
@@ -67,7 +67,10 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 	};
 
 	return (
-		<div className={`absolute top-0 z-10 ${classPosition}`}>
+		<div
+			ref={componentRef}
+			className={`absolute top-0 z-10 ${classPosition}`}
+		>
 			<button
 				onClick={onToggle}
 				className='p-1 transition-opacity duration-200 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100'
@@ -77,7 +80,6 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 
 			{isOpen && (
 				<div
-					ref={containerRef}
 					className={`absolute z-20 ${isMe ? 'right-0' : 'left-0'}`}
 					style={{ bottom: 'calc(100% + 5px)' }}
 				>
