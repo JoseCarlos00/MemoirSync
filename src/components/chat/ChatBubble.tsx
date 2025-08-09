@@ -7,7 +7,8 @@ import MessageVideo from './ChatBubble/MessageVideo';
 import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
 import { useUser } from '../../hooks/use.user';
-import EmojiPickerComponent from './ChatBubble/EmojiPicker'
+import EmojiPickerComponent from './ChatBubble/EmojiPicker';
+import { useState } from 'react';
 
 interface ChatBubbleProps {
 	message: Message;
@@ -16,6 +17,7 @@ interface ChatBubbleProps {
 
 export default function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
+	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
 	const isMe = message.sender === 'me';
 	const containerClass = isMe ? 'justify-end' : 'justify-start';
@@ -52,16 +54,33 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
 		}
 	};
 
+	const togglePicker = (id: string) => {
+		setOpenPickerId((current) => (current === id ? null : id));
+	};
+
+	const sendReaction = (emoji: string) => {
+		console.log('Emoji enviado:', emoji);
+		setOpenPickerId(null);
+	};
+
+	console.log({ openPickerId });
+
 	return (
-		<div className={`flex relative mb-2 ${containerClass}`}>
+		<div className={`flex relative mb-2 group ${containerClass}`}>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
+
+			{isAdmin && (
+				<EmojiPickerComponent
+					key={message._id}
+					id={message._id}
+					isOpen={openPickerId === message._id}
+					onToggle={() => togglePicker(message._id)}
+					onSendReaction={sendReaction}
+				/>
+			)}
 			<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}>
 				<div className='text-sm text-white'>{renderMessageContent()}</div>
 			</div>
-
-      {isAdmin && (
-        <EmojiPickerComponent message={message} />
-      )}
 		</div>
 	);
 }

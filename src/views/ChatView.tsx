@@ -14,7 +14,7 @@ export default function ChatView() {
 	// Carga inicial de mensajes al montar el componente
 	useEffect(() => {
 		fetchMessages({
-			limit: 1,
+			limit: 3,
 			offset: 0,
 		});
 	}, [fetchMessages]);
