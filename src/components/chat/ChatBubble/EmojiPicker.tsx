@@ -1,68 +1,17 @@
 import { useState, lazy, Suspense, useEffect, useRef } from 'react';
+import { type EmojiClickData } from 'emoji-picker-react';
 
 const EmojiPicker = lazy(() => import('emoji-picker-react')); // carga diferida
-// import { Theme } from 'emoji-picker-react';
-
-// import EmojiPicker, { Theme } from 'emoji-picker-react';
-
-// import api from '../../../services/api';
-import { type Message } from '../../../interfaces/message';
 
 const quickReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
 type EmojiPickerProps = {
 	isOpen: boolean;
+	isMe: boolean;
 	onToggle: () => void;
-	id: string;
 	onSendReaction: (emoji: string) => void;
 };
 
-
-
-function EmojiPickerComponent2({ isOpen, onToggle, id }: EmojiPickerProps) {
-	const menuRef = useRef<HTMLDivElement>(null);
-
-	console.log('Com:', { isOpen, id });
-
-	useEffect(() => {
-		function handleClickOutside(event: MouseEvent) {
-			if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
-				onToggle(); // Cierra el picker si clic fuera
-			}
-		}
-
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
-	}, [isOpen, onToggle]);
-
-	return (
-		<div className='relative inline-block mr-4'>
-			<button
-				onClick={onToggle}
-				className='px-3 py-1 bg-blue-600 text-white rounded'
-			>
-				Reacciones {id}
-			</button>
-
-			{isOpen && (
-				<div
-					ref={menuRef}
-					className='absolute top-full mt-2 bg-white p-2 rounded shadow-lg z-10'
-				>
-					{/* quickReactions */}
-					<div className='flex gap-2 text-2xl cursor-pointer select-none'>
-						<span>😀</span>
-						<span>😂</span>
-						<span>😍</span>
-						<span>👍</span>
-					</div>
-				</div>
-			)}
-		</div>
-	);
-}
 
 
 function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
@@ -82,84 +31,95 @@ function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
 	);
 }
 
-export default function EmojiPickerComponent({ isOpen, onToggle, id, onSendReaction }: EmojiPickerProps) {
-	const menuRef = useRef<HTMLDivElement>(null);
-	const [showPicker, setShowPicker] = useState(false);
+export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction, isMe }: EmojiPickerProps) {
+	const containerRef = useRef<HTMLDivElement>(null);
+	const [isFullPickerOpen, setIsFullPickerOpen] = useState(false);
+
+	const classPosition = isMe ? '-left-8' : '-right-8';
+
+	useEffect(() => {
+		// Resetear el estado interno si el picker se cierra desde el padre
+		if (!isOpen) {
+			setIsFullPickerOpen(false);
+		}
+	}, [isOpen]);
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
-			if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
-				onToggle(); // Cierra el picker si clic fuera
+			// Si el picker está abierto y se hace clic fuera de su contenedor, se cierra.
+			if (isOpen && containerRef.current && !containerRef.current.contains(event.target as Node)) {
+				onToggle();
 			}
 		}
-
 		document.addEventListener('mousedown', handleClickOutside);
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, [isOpen, onToggle]);
 
-	const sendReaction = (emoji: string) => {
-		console.log('Emoji enviado:', emoji);
-		setShowPicker(false);
+	const handleEmojiSelect = (emoji: string) => {
 		onSendReaction(emoji);
+		onToggle(); // Cierra el picker después de seleccionar
+	};
+
+	const handleFullPickerSelect = (emojiData: EmojiClickData) => {
+		handleEmojiSelect(emojiData.emoji);
 	};
 
 	return (
-		<div
-			className='group p-2'
-			// onMouseEnter={() => setShowMenu(true)}
-			// onMouseLeave={() => setShowMenu(false)}
-		>
+		<div className={`absolute top-0 z-10 ${classPosition}`}>
 			<button
 				onClick={onToggle}
-				className='rounded-full p-1 cursor-pointer opacity-0 group-hover:opacity-100'
+				className='p-1 transition-opacity duration-200 rounded-full cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100'
 			>
 				<EmojiIcon />
 			</button>
 
-			{isOpen && !showPicker && (
+			{isOpen && (
 				<div
-					ref={menuRef}
-					className='absolute -bottom-12 left-[50%] right-[50%] w-fit transform -translate-x-[68%] bg-[#1D1F1F] rounded-full flex gap-1 p-1 shadow-lg z-10'
+					ref={containerRef}
+					className={`absolute z-20 ${isMe ? 'right-0' : 'left-0'}`}
+					style={{ bottom: 'calc(100% + 5px)' }}
 				>
-					{quickReactions.map((emoji) => (
-						<button
-							key={emoji}
-							onClick={() => sendReaction(emoji)}
-							className='rounded-full p-1 cursor-pointer'
-						>
-							{emoji}
-						</button>
-					))}
-
-					<div className='p1 flex items-center justify-center'>
-						<button
-							onClick={onToggle}
-							className='hover:bg-white/9 rounded-full cursor-pointer bg-white/10 size-[24px]'
-						>
-							<span className='text-white/60 flex items-center justify-center'>
-								<svg
-									viewBox='0 0 24 24'
-									width='22'
-									className=''
+					{!isFullPickerOpen ? (
+						<div className='flex gap-1 p-1 bg-[#1D1F1F] rounded-full shadow-lg'>
+							{quickReactions.map((emoji) => (
+								<button
+									key={emoji}
+									onClick={() => handleEmojiSelect(emoji)}
+									className='p-1 text-xl transition-transform duration-150 rounded-full cursor-pointer hover:scale-125'
 								>
-									<path
-										fill='currentColor'
-										d='M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6V13z'
-									></path>
-								</svg>
-							</span>
-						</button>
-					</div>
-				</div>
-			)}
+									{emoji}
+								</button>
+							))}
 
-			{showPicker && (
-				<div className='absolute top-0 left-0 z-20 bg-white shadow-lg'>
-					<Suspense fallback={<div className='p-2'>Cargando emojis...</div>}>
-						<EmojiPicker onEmojiClick={(e) => sendReaction(e.emoji)} />
-					</Suspense>
+							<div className='flex items-center justify-center p-1'>
+								<button
+									onClick={() => setIsFullPickerOpen(true)}
+									className='flex items-center justify-center bg-white/10 rounded-full cursor-pointer size-[24px] hover:bg-white/20'
+								>
+									<span className='text-white/60 flex items-center justify-center'>
+										<svg
+											viewBox='0 0 24 24'
+											width='22'
+											className=''
+										>
+											<path
+												fill='currentColor'
+												d='M19,13h-6v6h-2v-6H5v-2h6V5h2v6h6V13z'
+											></path>
+										</svg>
+									</span>
+								</button>
+							</div>
+						</div>
+					) : (
+						<Suspense
+							fallback={<div className='p-4 bg-[#1D1F1F] rounded-lg shadow-lg text-white'>Cargando...</div>}
+						>
+							<EmojiPicker onEmojiClick={handleFullPickerSelect} />
+						</Suspense>
+					)}
 				</div>
 			)}
 		</div>

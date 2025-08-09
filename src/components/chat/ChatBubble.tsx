@@ -1,3 +1,4 @@
+import { memo, useState } from 'react';
 import { type Message } from '../../interfaces/message';
 import BubbleTail from './ChatBubble/BubbleTail';
 import MessageText from './ChatBubble/MessageText';
@@ -8,14 +9,13 @@ import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
 import { useUser } from '../../hooks/use.user';
 import EmojiPickerComponent from './ChatBubble/EmojiPicker';
-import { useState } from 'react';
 
 interface ChatBubbleProps {
 	message: Message;
 	showTail: boolean;
 }
 
-export default function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
+function ChatBubble({ message, showTail = false }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
@@ -37,7 +37,12 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
 			case 'text':
 				return <MessageText message={message} />;
 			case 'image':
-				return <MessageImage message={message} />;
+				return (
+					<MessageImage
+						message={message}
+						isMe={isMe}
+					/>
+				);
 			case 'audio':
 				return (
 					<MessageAudio
@@ -63,24 +68,27 @@ export default function ChatBubble({ message, showTail = false }: ChatBubbleProp
 		setOpenPickerId(null);
 	};
 
-	console.log({ openPickerId });
-
 	return (
 		<div className={`flex relative mb-2 group ${containerClass}`}>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
-			{isAdmin && (
-				<EmojiPickerComponent
-					key={message._id}
-					id={message._id}
-					isOpen={openPickerId === message._id}
-					onToggle={() => togglePicker(message._id)}
-					onSendReaction={sendReaction}
-				/>
-			)}
 			<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass}`}>
+				{/* Emoji Picker */}
+				{isAdmin && (
+					<EmojiPickerComponent
+						key={message._id}
+						isOpen={openPickerId === message._id}
+						onToggle={() => togglePicker(message._id)}
+						onSendReaction={sendReaction}
+						isMe={isMe}
+					/>
+				)}
+
+				{/* Contenido del mensaje */}
 				<div className='text-sm text-white'>{renderMessageContent()}</div>
 			</div>
 		</div>
 	);
 }
+
+export default memo(ChatBubble);

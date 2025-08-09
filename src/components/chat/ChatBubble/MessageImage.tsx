@@ -1,12 +1,15 @@
 import { type MediaMessage }  from '../../../interfaces/message';
 import TimeFormat from '../TimeFormat';
 
+interface MessageImageProps {
+	message: MediaMessage;
+	isMe: boolean;
+}
 
-export default function MessageImage({ message }: { message: MediaMessage }) {
+export default function MessageImage({ message, isMe }: MessageImageProps) {
 	const isCaption = message.caption !== undefined;
-	const isMe = message.sender === 'me';
 
-	const isMeClass = isMe ? 'absolute bottom-3 right-[24px] z-2' : 'absolute bottom-3 right-[18px] z-2';
+	const isMeClass = isMe ? 'absolute bottom-3 right-[24px] z-10' : 'absolute bottom-3 right-[18px] z-10';
 	const timeClass = isCaption ? '' : isMeClass
 
 	return (
