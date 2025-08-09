@@ -1,3 +1,4 @@
+import { memo } from "react"
 import api from "../../../services/api"
 import { type Message } from "../../../interfaces/message";
 
@@ -6,7 +7,7 @@ interface ReplyToProps {
 }
 
 
-export default function ReplyTo({ message }: ReplyToProps) {
+function ReplyTo({ message }: ReplyToProps) {
   const handleReplyTo = async () => {
       // Esto es un ejemplo, la lógica real de "responder a" es más compleja.
         // Asume que tienes el ID del mensaje al que quieres responder
@@ -27,3 +28,6 @@ export default function ReplyTo({ message }: ReplyToProps) {
 		</div>
 	);
 }
+
+export default memo(ReplyTo)
+

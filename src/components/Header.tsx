@@ -1,7 +1,8 @@
+import { memo } from "react";
 import api from "../services/api"
 import { useAuthStore } from "../store/authStore"
 
-export default function Header() {
+function Header() {
 	const { user, logout } = useAuthStore();
 
 
@@ -35,3 +36,7 @@ export default function Header() {
 		</header>
 	);
 }
+
+export default memo(Header);
+
+

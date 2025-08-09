@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { type MediaMessage } from '../../../interfaces/message';
 import TimeFormat from '../TimeFormat';
 
-export default function MessageSticker({ message }: { message: MediaMessage }) {
+ function MessageSticker({ message }: { message: MediaMessage }) {
 	return (
 		<>
 			<div className='pb-2.5 mb-0.5'>
@@ -15,3 +16,5 @@ export default function MessageSticker({ message }: { message: MediaMessage }) {
 		</>
 	);
 }
+
+export default memo(MessageSticker);

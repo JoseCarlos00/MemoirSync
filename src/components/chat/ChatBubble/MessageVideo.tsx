@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { type MediaMessage } from '../../../interfaces/message';
 
-export default function MessageVideo({ message }: { message: MediaMessage }) {
+ function MessageVideo({ message }: { message: MediaMessage }) {
 	return (
 		<video
 			controls
@@ -8,3 +9,5 @@ export default function MessageVideo({ message }: { message: MediaMessage }) {
 		/>
 	);
 }
+
+export default memo(MessageVideo);

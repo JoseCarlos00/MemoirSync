@@ -1,6 +1,6 @@
 import WaveSurfer from 'wavesurfer.js';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { type MediaMessage } from '../../../interfaces/message';
 
 import TimeFormat from '../TimeFormat';
@@ -153,4 +153,4 @@ function MessageAudio({ message, isMe, avatarUrl = 'https://localhost:3000/uploa
 	);
 }
 
-export default MessageAudio;
+export default memo(MessageAudio);

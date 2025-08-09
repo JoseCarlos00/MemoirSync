@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect, Fragment, memo } from 'react';
 import { type Emoji } from 'frimousse';
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react';
 
@@ -29,8 +29,7 @@ function EmojiIcon(props: React.SVGProps<SVGSVGElement> = {}) {
 		</svg>
 	);
 }
-
-export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction, isMe }: EmojiPickerProps) {
+function EmojiPickerComponent({ isOpen, onToggle, onSendReaction, isMe }: EmojiPickerProps) {
 	const [isFullPickerOpen, setIsFullPickerOpen] = useState(false);
 
 	const { refs, floatingStyles } = useFloating({
@@ -163,3 +162,6 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 		</Fragment>
 	);
 }
+
+
+export default memo(EmojiPickerComponent);
