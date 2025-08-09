@@ -12,6 +12,7 @@
   "dependencies": {
     "@floating-ui/react": "^0.27.15",
     "@tailwindcss/vite": "^4.1.11",
+    "@tanstack/react-virtual": "^3.13.12",
     "axios": "^1.11.0",
     "frimousse": "^0.3.0",
     "react": "^19.1.0",
