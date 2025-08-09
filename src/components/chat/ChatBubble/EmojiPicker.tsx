@@ -1,8 +1,10 @@
 import { useState, lazy, Suspense, useEffect, Fragment } from 'react';
-import { type EmojiClickData } from 'emoji-picker-react';
+import { type Emoji } from 'frimousse';
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react';
 
-const EmojiPicker = lazy(() => import('emoji-picker-react')); // carga diferida
+// const EmojiPicker = lazy(() => import('emoji-picker-react')); // carga diferida
+import { EmojiPicker } from 'frimousse';
+
 
 const quickReactions = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
 
@@ -80,7 +82,7 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 		onToggle(); // Cierra el picker después de seleccionar
 	};
 
-	const handleFullPickerSelect = (emojiData: EmojiClickData) => {
+	const handleFullPickerSelect = (emojiData: Emoji) => {
 		handleEmojiSelect(emojiData.emoji);
 	};
 
@@ -134,11 +136,16 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 							</div>
 						</div>
 					) : (
-						<Suspense
-							fallback={<div className='p-4 bg-[#1D1F1F] rounded-lg shadow-lg text-white'>Cargando...</div>}
+						<EmojiPicker.Root
+							onEmojiSelect={handleFullPickerSelect}
+							className='bg-[#1D1F1F] rounded-lg shadow-lg text-white w-[320px] h-[400px] flex flex-col p-2'
 						>
-							<EmojiPicker onEmojiClick={handleFullPickerSelect} />
-						</Suspense>
+							<EmojiPicker.Search className='w-full p-2 mb-2 bg-gray-700/50 rounded-md outline-none placeholder:text-gray-400' placeholder='Buscar emoji...'/>
+							<EmojiPicker.Viewport className='flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'>
+								<EmojiPicker.Empty className="text-center text-gray-400 pt-4">No se encontraron emojis.</EmojiPicker.Empty>
+								<EmojiPicker.List />
+							</EmojiPicker.Viewport>
+						</EmojiPicker.Root>
 					)}
 				</div>
 			)}
