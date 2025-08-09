@@ -1,8 +1,7 @@
-import { useState, lazy, Suspense, useEffect, Fragment } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { type Emoji } from 'frimousse';
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react';
 
-// const EmojiPicker = lazy(() => import('emoji-picker-react')); // carga diferida
 import { EmojiPicker } from 'frimousse';
 
 
@@ -78,8 +77,7 @@ export default function EmojiPickerComponent({ isOpen, onToggle, onSendReaction,
 	}, [isOpen, onToggle, refs]);
 
 	const handleEmojiSelect = (emoji: string) => {
-		onSendReaction(emoji);
-		onToggle(); // Cierra el picker después de seleccionar
+		onSendReaction(emoji); // La función onSendReaction ya se encarga de cerrar el picker.
 	};
 
 	const handleFullPickerSelect = (emojiData: Emoji) => {
