@@ -1,4 +1,4 @@
-import { useEffect, useRef, useLayoutEffect } from 'react';
+import { useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat from '../components/HeaderChat';
@@ -23,11 +23,54 @@ export default function ChatView() {
 		});
 	}, [fetchMessages]);
 
+	const estimateSize = useCallback(
+		(index: number) => {
+			const message = messages[index];
+			if (!message) return 100; // Un valor por defecto razonable
+
+			// Altura base para cualquier burbuja (padding, etc.)
+			let height = 40;
+
+			switch (message.type) {
+				case 'text':
+					// Estimación basada en la longitud del texto.
+					// Aprox. 45 caracteres por línea en móvil, cada línea ~20px de alto.
+					// Se suma un poco más por el timestamp.
+					height += Math.ceil(message.content.length / 45) * 20 + 20;
+					break;
+				case 'image':
+					// Con el nuevo MessageImage, la altura es predecible.
+					// max-w-xs (320px) + aspect-square. El caption y la hora se superponen.
+					height += 320 + 8; // 320px de la imagen + 8px de padding (p-1)
+					break;
+				case 'audio':
+					height += 60; // Altura para un reproductor de audio
+					break;
+				case 'video':
+					height += 250; // Altura promedio para un video
+					break;
+				case 'sticker':
+					// El componente de sticker tiene un tamaño fijo de 190x190
+					// más padding y el timestamp.
+					height += 190 + 10 + 16; // 190px (img) + 10px (pb-2.5) + ~16px (TimeFormat)
+					break;
+				default:
+					height += 50; // Para mensajes no soportados
+			}
+
+			// Si el mensaje tiene una reacción, añade espacio extra
+			if (message.reactionEmoji) height += 24;
+
+			return height;
+		},
+		[messages]
+	);
+
 	const rowVirtualizer = useVirtualizer({
 		count: messages.length,
 		getScrollElement: () => parentRef.current,
-		estimateSize: () => 100, // Un tamaño estimado por mensaje, ajústalo a tu promedio
-		overscan: 10, // Renderiza 10 items extra fuera de la vista para un scroll más suave
+		estimateSize,
+		overscan: 10,
 	});
 
 	// Lógica para infinite scroll
@@ -44,7 +87,7 @@ export default function ChatView() {
 			prevScrollHeight.current = rowVirtualizer.getTotalSize();
 			fetchMoreMessages({ limit: 30, offset: messages.length });
 		}
-	}, [rowVirtualizer.getVirtualItems(), hasMore, loading, messages.length, fetchMoreMessages]);
+	}, [rowVirtualizer, hasMore, loading, messages.length, fetchMoreMessages]);
 
 	// Efecto para ajustar la posición del scroll después de que se carguen nuevos mensajes
 	useLayoutEffect(() => {
@@ -99,11 +142,13 @@ export default function ChatView() {
 							return (
 								<div
 									key={msg._id}
+									ref={rowVirtualizer.measureElement}
+									data-index={virtualItem.index}
 									style={{
 										position: 'absolute',
+										top: 0,
 										left: 0,
 										width: '100%',
-										height: `${virtualItem.size}px`,
 										transform: `translateY(${virtualItem.start}px)`,
 									}}
 								>
