@@ -4,16 +4,16 @@ import TimeFormat from '../TimeFormat';
 
  function MessageSticker({ message }: { message: MediaMessage }) {
 	return (
-		<>
-			<div className='pb-2.5 mb-0.5'>
-				<img
-					src={message.mediaUrl}
-					alt={message.caption || 'Sticker'}
-					className='max-w-full rounded w-[190px] h-[190px]'
-				/>
+		<div className='relative w[190px] h-[190px] flex flex-col'>
+			<img
+				src={message.mediaUrl}
+				alt={'Sticker'}
+				className='rounded size-[190px] object-contain'
+			/>
+			<div className='bg-black/50 rounded-sm px-1 py-0.5 self-end'>
+				<TimeFormat timestamp={message.timestamp} />
 			</div>
-			<TimeFormat timestamp={message.timestamp} />
-		</>
+		</div>
 	);
 }
 
