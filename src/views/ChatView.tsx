@@ -1,19 +1,15 @@
-import { useEffect, useRef, useLayoutEffect, useCallback } from 'react';
+import { useEffect, useRef, useLayoutEffect } from 'react';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat from '../components/HeaderChat';
-import { useVirtualizer } from '@tanstack/react-virtual';
 
 import '../views/ChatView.css';
 
 export default function ChatView() {
 	const { messages, fetchMessages, fetchMoreMessages, loading, hasMore, updateMessage } = useChat();
-	const parentRef = useRef<HTMLDivElement>(null);
-
-	// Refs para mantener la posición del scroll
-	const isFetchingMore = useRef(false);
-	const prevScrollHeight = useRef(0);
-	const initialLoadComplete = useRef(false);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const scrollRef = useRef({ prevScrollHeight: 0 });
+	const isInitialLoad = useRef(true);
 
 	// Carga inicial de mensajes al montar el componente
 	useEffect(() => {
@@ -23,144 +19,73 @@ export default function ChatView() {
 		});
 	}, [fetchMessages]);
 
-	const estimateSize = useCallback(
-		(index: number) => {
-			const message = messages[index];
-			if (!message) return 100; // Un valor por defecto razonable
-
-			// Altura base para cualquier burbuja (padding, etc.)
-			let height = 40;
-
-			switch (message.type) {
-				case 'text':
-					// Estimación basada en la longitud del texto.
-					// Aprox. 45 caracteres por línea en móvil, cada línea ~20px de alto.
-					// Se suma un poco más por el timestamp.
-					height += Math.ceil(message.content.length / 45) * 20 + 20;
-					break;
-				case 'image':
-					// Con el nuevo MessageImage, la altura es predecible.
-					// max-w-xs (320px) + aspect-square. El caption y la hora se superponen.
-					height += 320 + 8; // 320px de la imagen + 8px de padding (p-1)
-					break;
-				case 'audio':
-					height += 60; // Altura para un reproductor de audio
-					break;
-				case 'video':
-					height += 250; // Altura promedio para un video
-					break;
-				case 'sticker':
-					// El componente de sticker tiene un tamaño fijo de 190x190
-					// más padding y el timestamp.
-					height += 190 + 10 + 16; // 190px (img) + 10px (pb-2.5) + ~16px (TimeFormat)
-					break;
-				default:
-					height += 50; // Para mensajes no soportados
-			}
-
-			// Si el mensaje tiene una reacción, añade espacio extra
-			if (message.reactionEmoji) height += 24;
-
-			return height;
-		},
-		[messages]
-	);
-
-	const rowVirtualizer = useVirtualizer({
-		count: messages.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize,
-		overscan: 10,
-	});
-
-	// Lógica para infinite scroll
+	// Lógica para detectar el scroll hacia arriba y cargar más mensajes
 	useEffect(() => {
-		const virtualItems = rowVirtualizer.getVirtualItems();
-		if (virtualItems.length === 0 || !hasMore || loading) {
-			return;
-		}
+		const el = containerRef.current;
+		if (!el || !hasMore || loading) return;
 
-		const firstItem = virtualItems[0];
-		if (firstItem && firstItem.index < 5 && !isFetchingMore.current) {
-			// Cargar más cuando estemos cerca de los primeros 5 items
-			isFetchingMore.current = true;
-			prevScrollHeight.current = rowVirtualizer.getTotalSize();
-			fetchMoreMessages({ limit: 30, offset: messages.length });
-		}
-	}, [rowVirtualizer, hasMore, loading, messages.length, fetchMoreMessages]);
+		const handleScroll = () => {
+			// Si el scroll está cerca de la parte superior, carga más mensajes
+			if (el.scrollTop < 100) {
+				scrollRef.current.prevScrollHeight = el.scrollHeight;
+
+				const currentOffset = messages.length;
+				fetchMoreMessages({ limit: 30, offset: currentOffset });
+			}
+		};
+
+		el.addEventListener('scroll', handleScroll);
+		return () => el.removeEventListener('scroll', handleScroll);
+	}, [loading, hasMore, messages.length, fetchMoreMessages]);
 
 	// Efecto para ajustar la posición del scroll después de que se carguen nuevos mensajes
 	useLayoutEffect(() => {
-		if (messages.length === 0) return;
+		const el = containerRef.current;
+		if (!el) return;
 
-		const parentElement = parentRef.current;
-		if (!parentElement) return;
-
-		// Caso 1: Carga inicial. Ir al final de la lista.
-		if (!initialLoadComplete.current) {
-			rowVirtualizer.scrollToIndex(messages.length - 1, { align: 'end' });
-			initialLoadComplete.current = true;
-			return;
+		if (isInitialLoad.current && messages.length > 0) {
+			// En la primera carga, desplaza hasta el final de la conversación
+			el.scrollTop = el.scrollHeight;
+			isInitialLoad.current = false;
+		} else if (scrollRef.current.prevScrollHeight > 0) {
+			// Después de cargar mensajes adicionales, restaura la posición del scroll
+			const newHeight = el.scrollHeight;
+			const adjustment = newHeight - scrollRef.current.prevScrollHeight;
+			el.scrollTop = el.scrollTop + adjustment;
+			scrollRef.current.prevScrollHeight = 0;
 		}
-
-		// Caso 2: Se cargaron más mensajes. Mantener la posición del scroll.
-		if (isFetchingMore.current) {
-			const newScrollHeight = rowVirtualizer.getTotalSize();
-			parentElement.scrollTop += newScrollHeight - prevScrollHeight.current;
-			isFetchingMore.current = false;
-		}
-	}, [messages.length, rowVirtualizer]);
+	}, [messages.length]);
 
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
 			<HeaderChat messagesTotal={messages.length} />
 
 			<div
-				ref={parentRef}
-				className='overflow-y-auto h-[calc(100vh-68px)] px-4 py-2 max-w-2xl mx-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+				ref={containerRef}
+				className='flex flex-col overflow-y-auto h-[calc(100vh-68px)] px-4 py-2 max-w-2xl mx-auto space-y-2 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
 			>
-				{loading && messages.length === 0 ? (
+				{loading && isInitialLoad.current && (
 					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
-				) : (
-					<div
-						style={{
-							height: `${rowVirtualizer.getTotalSize()}px`,
-							width: '100%',
-							position: 'relative',
-						}}
-					>
-						{isFetchingMore.current && (
-							<div className='text-center text-sm text-gray-400 py-2'>Cargando más...</div>
-						)}
-						{rowVirtualizer.getVirtualItems().map((virtualItem) => {
-							const msg = messages[virtualItem.index];
-							const prevMessage = messages[virtualItem.index - 1];
+				)}
 
-							// Mostrar la cola si es el primer mensaje del grupo o el último del chat
-							const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+				{messages.map((msg, index, arr) => {
+					const prevMessage = arr[index - 1]; // El mensaje siguiente en el array es el anterior en el tiempo
 
-							return (
-								<div
-									key={msg._id}
-									ref={rowVirtualizer.measureElement}
-									data-index={virtualItem.index}
-									style={{
-										position: 'absolute',
-										top: 0,
-										left: 0,
-										width: '100%',
-										transform: `translateY(${virtualItem.start}px)`,
-									}}
-								>
-									<ChatBubble
-										message={msg}
-										showTail={showTail}
-										onUpdateMessage={updateMessage}
-									/>
-								</div>
-							);
-						})}
-					</div>
+					// Mostrar la cola si es el primer mensaje del grupo o el último del chat
+					const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+
+					return (
+						<ChatBubble
+							key={msg._id}
+							message={msg}
+							showTail={showTail}
+							onUpdateMessage={updateMessage}
+						/>
+					);
+				})}
+
+				{loading && !isInitialLoad.current && (
+					<div className='text-center text-sm text-gray-400 py-2'>Cargando mensajes...</div>
 				)}
 			</div>
 		</div>

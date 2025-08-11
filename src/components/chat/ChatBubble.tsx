@@ -89,7 +89,7 @@ function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubblePr
 	};
 
 	return (
-		<div className={`flex relative mb-1 group ${containerClass}`}>
+		<div className={`flex flex-col relative mb-1 group ${containerClass}`}>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
 			<div className={`flex flex-col ${bubbleAlignmentClass}`}>
