@@ -6,12 +6,14 @@ interface ChatState {
 	loading: boolean;
 	selectedChatId: string | null;
 	totalMessages: number;
+	error: string | null;
 	setMessages: (messages: Message[]) => void;
 	addMessages: (newMessages: Message[]) => void;
 	setLoading: (loading: boolean) => void;
 	clearMessages: () => void;
 	setTotalMessages: (total: number) => void;
 	updateMessage: (messageId: string, updates: Partial<Message>) => void;
+	setError: (error: string | null) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -19,6 +21,7 @@ export const useChatStore = create<ChatState>((set) => ({
 	loading: false,
 	selectedChatId: null,
 	totalMessages: 0,
+	error: null,
 
 	setMessages: (messages) => set({ messages }),
 	addMessages: (newMessages) => set((state) => ({ messages: [...newMessages, ...state.messages] })),
@@ -29,4 +32,5 @@ export const useChatStore = create<ChatState>((set) => ({
 		set((state: ChatState) => ({
 			messages: state.messages.map((msg) => (msg._id === messageId ? { ...msg, ...updates } as Message : msg)),
 		})),
+	setError: (error) => set({ error }),
 }));
