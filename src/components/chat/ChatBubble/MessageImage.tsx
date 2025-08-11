@@ -7,9 +7,9 @@ interface MessageImageProps {
 	isMe: boolean;
 }
 
- function MessageImage({ message, isMe }: MessageImageProps) {
+function MessageImage({ message, isMe }: MessageImageProps) {
 	const [isLoading, setIsLoading] = useState(true);
-	const {mediaUrl, caption, timestamp} = message;
+	const { mediaUrl, caption, timestamp } = message;
 	const isCaption = message.caption !== undefined;
 
 	const isMeClass = isMe ? 'absolute bottom-3 right-[24px] z-10' : 'absolute bottom-3 right-[18px] z-10';
@@ -17,11 +17,9 @@ interface MessageImageProps {
 
 	return (
 		<div className='p-1.5'>
-			<figure className='relative max-w-xs aspect-square rounded-lg overflow-hidden'>
-				{/* Placeholder de Carga */}
+			<figure className='relative max-w-xs aspect-square rounded-lg'>
 				{isLoading && <div className='absolute inset-0 bg-gray-600 animate-pulse'></div>}
-
-				{/* Imagen */}
+				
 				<img
 					src={mediaUrl}
 					alt='Imagen'
