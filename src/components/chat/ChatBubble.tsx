@@ -78,7 +78,7 @@ function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubblePr
 		try {
 			// 2. Persistir el cambio en el backend
 			// Usamos PATCH para una actualización parcial del recurso del mensaje
-			await api.patch(`/messages/${messageId}`, { reactionEmoji: emoji });
+			await api.patch(`/messages/${messageId}/react`, { reactionEmoji: emoji });
 			// Si la petición es exitosa, no hacemos nada más. La UI ya está actualizada.
 		} catch (error) {
 			console.error('Error al actualizar la reacción:', error);
