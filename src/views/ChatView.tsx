@@ -7,109 +7,103 @@ import '../views/ChatView.css';
 
 const MESSAGE_FETCH_LIMIT = 30;
 
+// Componente auxiliar para mostrar estados de carga/error a pantalla completa.
+const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactNode; messagesTotal?: number }) => (
+	<div className='bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col'>
+		<HeaderChat messagesTotal={messagesTotal} />
+		<div className='flex-grow flex items-center justify-center text-center text-sm'>
+			{children}
+		</div>
+	</div>
+);
+
 export default function ChatView() {
-  const {
-    messages,
-    fetchMessages,
-    fetchMoreMessages,
-    loading,
-    error,
-    hasMore,
-    updateMessage,
-  } = useChat();
+	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
+		useChat();
 
-  const virtuosoRef = useRef<VirtuosoHandle>(null);
-  const isInitialLoad = useRef(true);
+	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
-  // Carga inicial
-  useEffect(() => {
-    if (messages.length === 0) {
-      fetchMessages({ limit: MESSAGE_FETCH_LIMIT });
-    }
-  }, [fetchMessages, messages.length]);
+	// Carga inicial de mensajes.
+	// Se ejecuta solo una vez cuando el componente se monta, si no hay mensajes.
+	useEffect(() => {
+		if (messages.length === 0) {
+			fetchMessages({ limit: MESSAGE_FETCH_LIMIT });
+		}
+		// La dependencia en fetchMessages es correcta. No necesitamos messages.length
+		// aquí porque solo queremos que se ejecute una vez al inicio si está vacío.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [fetchMessages]);
 
-  // Cargar más mensajes (scroll arriba)
-  const loadMore = useCallback(() => {
-    if (!hasMore || loading) return;
-    fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
-  }, [hasMore, loading, fetchMoreMessages]);
+	const loadMore = useCallback(async () => {
+		if (!hasMore || loading) return;
+		// Al usar firstItemIndex, Virtuoso maneja el ajuste del scroll automáticamente.
+		// Ya no es necesario el ajuste manual con adjustForPrependedItems.
+		await fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
+	}, [hasMore, loading, fetchMoreMessages]);
 
-  // Ajustar scroll inicial
-  useEffect(() => {
-    if (isInitialLoad.current && messages.length > 0) {
-      virtuosoRef.current?.scrollToIndex({
-        index: messages.length - 1,
-        align: 'end',
-        behavior: 'auto',
-      });
-      isInitialLoad.current = false;
-    }
-  }, [messages.length]);
+	const firstItemIndex = hasMore ? totalMessages - messages.length : 0;
 
-  // Vista de carga inicial
-  if (loading && messages.length === 0) {
-    return (
-      <div className="bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col">
-        <HeaderChat messagesTotal={0} />
-        <div className="flex-grow flex items-center justify-center text-center text-sm text-gray-400">
-          Cargando mensajes...
-        </div>
-      </div>
-    );
-  }
+	// Manejo de estados iniciales (carga y error)
+	const isInitialState = messages.length === 0;
+	if (isInitialState && (loading || error)) {
+		return (
+			<ChatStateView>
+				{loading && <p className='text-gray-400'>Cargando mensajes...</p>}
+				{error && <p className='text-red-400'>{error}</p>}
+			</ChatStateView>
+		);
+	}
 
-  // Vista de error inicial
-  if (error && messages.length === 0) {
-    return (
-      <div className="bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col">
-        <HeaderChat messagesTotal={0} />
-        <div className="flex-grow flex items-center justify-center text-center text-sm text-red-400">{error}</div>
-      </div>
-    );
-  }
+	return (
+		<div className='bg-chat-background text-gray-200 view-chat-container'>
+			<HeaderChat messagesTotal={totalMessages} />
 
-  return (
-    <div className="bg-chat-background text-gray-200 view-chat-container">
-      <HeaderChat messagesTotal={messages.length} />
-
-      <Virtuoso
-        ref={virtuosoRef}
-        style={{ height: 'calc(100vh - 68px)' }}
-        data={messages}
-        initialTopMostItemIndex={messages.length - 1}
-        startReached={loadMore}
-        followOutput="smooth"
-        increaseViewportBy={{ top: 400, bottom: 200 }}
-        itemContent={(index, msg) => {
-          const prevMessage = messages[index - 1];
-          const showTail = !prevMessage || prevMessage.sender !== msg.sender;
-          return (
-            <div key={msg._id} className="px-4 max-w-2xl mx-auto mb-2">
-              <ChatBubble
-                message={msg}
-                showTail={showTail}
-                onUpdateMessage={updateMessage}
-              />
-            </div>
-          );
-        }}
-        components={{
-          Header: () =>
-            hasMore ? (
-              <div className="text-center text-sm text-gray-400 py-4">
-                {loading ? 'Cargando más mensajes...' : 'Desliza para cargar más'}
-              </div>
-            ) : (
-              <div className="pt-2" />
-            ),
-          Footer: () => (
-            <div className="pb-2">
-              {error && !loading && <div className="text-center text-sm text-red-400 py-2">{error}</div>}
-            </div>
-          ),
-        }}
-        className="scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800"
-      />
-    </div>
-  );
+			<Virtuoso
+				ref={virtuosoRef}
+				style={{ height: 'calc(100vh - 88px)' }}
+				firstItemIndex={firstItemIndex}
+				followOutput='auto'
+				data={messages}
+				initialTopMostItemIndex={messages.length - 1}
+				startReached={loadMore}
+				computeItemKey={(_index, msg) => msg._id}
+				increaseViewportBy={{ top: 800, bottom: 200 }}
+				itemContent={(index, msg) => {
+					const prevMessage = messages[index - 1];
+					const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+					return (
+						<ChatBubble
+							message={msg}
+							showTail={showTail}
+							onUpdateMessage={updateMessage}
+						/>
+					);
+				}}
+				components={{
+					Item: ({ children, ...props }) => (
+						<div
+							{...props}
+							className='px-4 max-w-2xl mx-auto mb-2'
+						>
+							{children}
+						</div>
+					),
+					Header: () => {
+						// Solo muestra el indicador de carga si realmente está cargando y hay más mensajes.
+						// Muestra "Fin de la conversación" solo si no está cargando y ya no hay más mensajes.
+						return (
+							<div className='h-12 flex justify-center items-center text-center text-sm text-gray-400'>
+								{loading && hasMore && 'Cargando más mensajes...'}
+								{!loading && !hasMore && messages.length > 0 && 'Fin de la conversación.'}
+							</div>
+						);
+					},
+					Footer: () => (
+						<div className='pb-2'>{error && <div className='text-center text-sm text-red-400 py-2'>{error}</div>}</div>
+					),
+				}}
+				className='scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+			/>
+		</div>
+	);
 }
