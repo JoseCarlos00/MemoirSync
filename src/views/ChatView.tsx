@@ -5,7 +5,7 @@ import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat from '../components/HeaderChat';
 import '../views/ChatView.css';
 
-const MESSAGE_FETCH_LIMIT = 30;
+const MESSAGE_FETCH_LIMIT = 30
 
 // Componente auxiliar para mostrar estados de carga/error a pantalla completa.
 const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactNode; messagesTotal?: number }) => (
@@ -37,7 +37,6 @@ export default function ChatView() {
 	const loadMore = useCallback(async () => {
 		if (!hasMore || loading) return;
 		// Al usar firstItemIndex, Virtuoso maneja el ajuste del scroll automáticamente.
-		// Ya no es necesario el ajuste manual con adjustForPrependedItems.
 		await fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
 	}, [hasMore, loading, fetchMoreMessages]);
 
@@ -69,8 +68,15 @@ export default function ChatView() {
 				computeItemKey={(_index, msg) => msg._id}
 				increaseViewportBy={{ top: 800, bottom: 200 }}
 				itemContent={(index, msg) => {
-					const prevMessage = messages[index - 1];
+					// `index` es el índice absoluto en la lista virtual.
+					// Necesitamos calcular el índice relativo al array `messages`.
+					const localIndex = index - firstItemIndex;
+					const prevMessage = messages[localIndex - 1];
+
+					// La cola se muestra si es el primer mensaje del array (no hay anterior)
+					// o si el emisor del mensaje anterior es diferente.
 					const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+
 					return (
 						<ChatBubble
 							message={msg}
