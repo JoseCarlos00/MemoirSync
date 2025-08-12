@@ -4,7 +4,7 @@ interface BubbleTailProps {
 
 export default function BubbleTail({ isMe }: BubbleTailProps) {
 	return (
-		<span className={`absolute w-2 h-3 z-5 ${isMe ? '-right-2' : '-left-2'}`}>
+		<span className={`absolute w-2 h-3 z-5 top-0 ${isMe ? '-right-2' : '-left-2'}`}>
 			<svg
 				viewBox='0 0 8 13'
 				height='13'
