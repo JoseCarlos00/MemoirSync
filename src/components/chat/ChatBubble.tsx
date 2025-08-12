@@ -40,12 +40,7 @@ function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubblePr
 			case 'text':
 				return <MessageText message={message} />;
 			case 'image':
-				return (
-					<MessageImage
-						message={message}
-						isMe={isMe}
-					/>
-				);
+				return <MessageImage message={message} />;
 			case 'audio':
 				return (
 					<MessageAudio
