@@ -55,8 +55,12 @@ export function useChat() {
 					params: { ...options, beforeId: firstMsgId },
 				});
 				addMessages(data.messages);
-				setError(null); // Limpiar errores si la petición es exitosa
-				// El total se actualiza con la corrección del backend
+				// El backend puede devolver un total actualizado (ej. si se añaden nuevos mensajes mientras navegas).
+				// Actualizarlo asegura que la condición `hasMore` sea siempre correcta.
+				if (typeof data.total === 'number') {
+					setTotalMessages(data.total);
+				}
+				setError(null);
 			} catch (error) {
 				console.error('Error fetching more messages:', error);
 				setError('No se pudieron cargar más mensajes.');
@@ -64,7 +68,7 @@ export function useChat() {
 				setLoading(false);
 			}
 		},
-		[addMessages, setLoading, setError]
+		[addMessages, setLoading, setTotalMessages, setError]
 	);
 
 	const updateMessage = useCallback(
