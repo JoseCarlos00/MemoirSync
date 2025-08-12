@@ -111,8 +111,10 @@ function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubblePr
 
 				{/* Emoji Reaction */}
 				{message.reactionEmoji && (
-					<div className='relative -mt-2 z-10 px-2'>
-						<span className='bg-gray-700 rounded-full px-1.5 py-1 text-xs'>{message.reactionEmoji}</span>
+					<div className='relative -mt-1.5 z-10 px-2'>
+						<span className='bg-gray-800 rounded-full px-1 py-0.5 text-xs border border-[#161717]'>
+							{message.reactionEmoji}
+						</span>
 					</div>
 				)}
 			</div>
