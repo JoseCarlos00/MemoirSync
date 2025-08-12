@@ -23,7 +23,7 @@ function MessageImage({ message, isMe }: MessageImageProps) {
 				<img
 					src={mediaUrl}
 					alt='Imagen'
-					className={`w-full h-full object-cover transition-opacity duration-300 ${
+					className={`w-full h-full min-w-80 min-h-80  object-cover transition-opacity duration-300 ${
 						isLoading ? 'opacity-0' : 'opacity-100'
 					}`}
 					onLoad={() => setIsLoading(false)}
