@@ -14,14 +14,15 @@ import api from '../../services/api'
 interface ChatBubbleProps {
 	message: Message;
 	showTail: boolean;
+	myUserName?: string;
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 }
 
-function ChatBubble({ message, showTail = false, onUpdateMessage }: ChatBubbleProps) {
+function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
-	const isMe = message.sender === 'me';
+	const isMe = message.sender === myUserName;
 	const containerClass = isMe ? 'justify-end' : 'justify-start';
 	const bubbleAlignmentClass = isMe ? 'items-end' : 'items-start';
 

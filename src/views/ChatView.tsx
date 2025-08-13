@@ -4,6 +4,7 @@ import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat from '../components/HeaderChat';
 import '../views/ChatView.css';
+import { useAuthStore } from '../store/authStore'
 
 const MESSAGE_FETCH_LIMIT = 30
 
@@ -18,6 +19,7 @@ const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactN
 );
 
 export default function ChatView() {
+	const { user } = useAuthStore();
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
 		useChat();
 
@@ -82,6 +84,7 @@ export default function ChatView() {
 							message={msg}
 							showTail={showTail}
 							onUpdateMessage={updateMessage}
+							myUserName={user?.username}
 						/>
 					);
 				}}
