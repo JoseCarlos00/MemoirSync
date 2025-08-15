@@ -8,29 +8,48 @@ interface ReplyPreviewProps {
 	onNavigate?: () => void;
 }
 
-const ReplyText = ({ repliedMessage, borderColor }: { repliedMessage: TextMessage; borderColor: string }) => {
-    const user = useAuthStore().user;
-    const { sender, content } = repliedMessage
+// Componente para mostrar el nombre del remitente de la respuesta
+const RepliedSender = ({ sender }: { sender: string }) => {
+	const { user } = useAuthStore();
+	const displayName = sender === user?.username ? 'Tú' : sender;
+	return <p className='text-blue-400 text-sm font-bold truncate'>{displayName}</p>;
+};
 
+// Componente base para el contenedor de la vista previa de la respuesta
+const ReplyContainer = ({
+	borderColor,
+	children,
+	className,
+}: {
+	borderColor: string;
+	children: React.ReactNode;
+	className?: string;
+}) => (
+	<div
+		// onClick={onNavigate}
+		className={`flex border-l-4 p-2 rounded-md bg-gray-700 cursor-pointer ${borderColor} ${className || ''}`}
+	>
+		{children}
+	</div>
+);
+
+const ReplyText = ({ repliedMessage, borderColor }: { repliedMessage: TextMessage; borderColor: string }) => {
 	return (
-		<div
-			// onClick={onNavigate}
-			className={`flex flex-col border-l-4 p-2 rounded-md bg-gray-700 cursor-pointer ${borderColor}`}
+		<ReplyContainer
+			borderColor={borderColor}
+			className='flex-col'
 		>
-			<p className='text-blue-400 text-sm font-bold truncate'>{ sender === user?.username ? 'Tú' : sender}</p>
-			<p className='text-gray-300 text-xs ml-2 truncate'>{content}</p>
-		</div>
+			<RepliedSender sender={repliedMessage.sender} />
+			<p className='text-gray-300 text-xs ml-2 truncate'>{repliedMessage.content}</p>
+		</ReplyContainer>
 	);
 };
 
 const ReplyImage = ({ repliedMessage, borderColor }: { repliedMessage: MediaMessage; borderColor: string }) => {
 	return (
-		<div
-			// onClick={onNavigate}
-			className='flex border-l-4 border-blue-400 p-2 rounded-md bg-gray-700 cursor-pointer'
-		>
+		<ReplyContainer borderColor={borderColor}>
 			<div className='flex-grow'>
-				<p className='text-blue-400 text-sm font-bold'>{repliedMessage.sender}</p>
+				<RepliedSender sender={repliedMessage.sender} />
 				<p className='text-gray-300 text-xs truncate'>{repliedMessage.caption || 'Foto'}</p>
 			</div>
 			<img
@@ -38,25 +57,25 @@ const ReplyImage = ({ repliedMessage, borderColor }: { repliedMessage: MediaMess
 				alt='Miniatura'
 				className='w-12 h-12 object-cover rounded ml-2'
 			/>
-		</div>
+		</ReplyContainer>
 	);
 };
 
 const ReplyAudio = ({ repliedMessage, borderColor }: { repliedMessage: MediaMessage; borderColor: string }) => {
 	return (
-		<div
-			// onClick={onNavigate}
-			className='flex border-l-4 border-blue-400 p-2 rounded-md bg-gray-700 items-center cursor-pointer'
+		<ReplyContainer
+			borderColor={borderColor}
+			className='items-center'
 		>
 			<div className='flex-grow'>
-				<p className='text-blue-400 text-sm font-bold'>{repliedMessage.sender}</p>
+				<RepliedSender sender={repliedMessage.sender} />
 				<p className='text-gray-300 text-xs flex items-center'>
 					<span className='material-icons mr-1'>audio track</span>
 					Audio
 					{repliedMessage.duration && <span className='ml-2'>({repliedMessage.duration}s)</span>}
 				</p>
 			</div>
-		</div>
+		</ReplyContainer>
 	);
 };
 
