@@ -8,6 +8,7 @@ import MessageVideo from './ChatBubble/MessageVideo';
 import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
 import EmojiPickerComponent from './ChatBubble/EmojiPicker';
+import ReplyPreview from './ChatBubble/ReplyPreview';
 import { useUser } from '../../hooks/use.user';
 import api from '../../services/api'
 
@@ -18,57 +19,7 @@ interface ChatBubbleProps {
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 }
 
-const ReplyPreview = ({ repliedMessage }) => {
-	if (!repliedMessage) return null;
 
-	switch (repliedMessage.type) {
-		case 'text':
-			return (
-				<div
-					// onClick={onNavigate}
-					className='flex flex-col border-l-4 border-blue-400 p-2 rounded-md bg-gray-700 cursor-pointer'
-				>
-					<p className='text-blue-400 text-sm font-bold truncate'>{repliedMessage.sender}</p>
-					<p className='text-gray-300 text-xs ml-2 truncate'>{repliedMessage.content}</p>
-				</div>
-			);
-		case 'image':
-			return (
-				<div
-					// onClick={onNavigate}
-					className='flex border-l-4 border-blue-400 p-2 rounded-md bg-gray-700 cursor-pointer'
-				>
-					<div className='flex-grow'>
-						<p className='text-blue-400 text-sm font-bold'>{repliedMessage.sender}</p>
-						<p className='text-gray-300 text-xs truncate'>{repliedMessage.caption || 'Foto'}</p>
-					</div>
-					<img
-						src={repliedMessage.thumbnailUrl || repliedMessage.mediaUrl}
-						alt='Miniatura'
-						className='w-12 h-12 object-cover rounded ml-2'
-					/>
-				</div>
-			);
-		case 'audio':
-			return (
-				<div
-					// onClick={onNavigate}
-					className='flex border-l-4 border-blue-400 p-2 rounded-md bg-gray-700 items-center cursor-pointer'
-				>
-					<div className='flex-grow'>
-						<p className='text-blue-400 text-sm font-bold'>{repliedMessage.sender}</p>
-						<p className='text-gray-300 text-xs flex items-center'>
-							<span className='material-icons mr-1'>audio track</span>
-							Audio
-							{repliedMessage.duration && <span className='ml-2'>({repliedMessage.duration}s)</span>}
-						</p>
-					</div>
-				</div>
-			);
-		default:
-			return null;
-	}
-};
 
 function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
@@ -141,7 +92,7 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: 
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
 			<div className={`flex flex-col ${bubbleAlignmentClass}`}>
-				<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} relative`}>
+				<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} p-1 relative`}>
 					{/* Emoji Picker */}
 					{isAdmin && (
 						<EmojiPickerComponent
@@ -152,15 +103,16 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: 
 							isMe={isMe}
 						/>
 					)}
-
-					{/* Contenido del mensaje */}
+					{/* Contenedor del mensaje */}
 					<div className='text-sm text-white relative'>
 						{message.replyTo && (
 							<ReplyPreview
 								repliedMessage={message.replyTo}
+								isMe={isMe}
 								// onNavigate={() => onNavigateToReply(message.replyTo._id)}
 							/>
 						)}
+						{/* Contenido del mensaje */}
 						{renderMessageContent()}
 					</div>
 				</div>
