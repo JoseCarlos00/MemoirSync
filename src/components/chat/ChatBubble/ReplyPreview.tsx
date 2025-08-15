@@ -1,11 +1,19 @@
 import { memo } from 'react';
 import type { Message, TextMessage, MediaMessage } from '../../../interfaces/message';
 import { useAuthStore } from '../../../store/authStore';
+import { useAudioDuration } from '../../../hooks/useAudioDuration';
+import PhoneIcon from '../../icons/PhoneIcon'
 
 interface ReplyPreviewProps {
 	repliedMessage: Message;
 	isMe: boolean;
 	onNavigate?: () => void;
+}
+
+function formatTime(seconds: number) {
+	const m = Math.floor(seconds / 60);
+	const s = Math.floor(seconds % 60);
+	return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
 // Componente para mostrar el nombre del remitente de la respuesta
@@ -65,20 +73,44 @@ const ReplyImage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessag
 };
 
 const ReplyAudio = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: MediaMessage; borderColor: string; onNavigate?: () => void }) => {
+	// Usamos el hook si la duración no está en los datos del mensaje.
+	const { duration: calculatedDuration, isLoading } = useAudioDuration(
+		!repliedMessage.duration ? repliedMessage.mediaUrl : undefined
+	);
+
+	const displayDuration = repliedMessage.duration ?? calculatedDuration;
+
 	return (
 		<ReplyContainer
 			borderColor={borderColor}
 			className='items-center'
 			onNavigate={onNavigate}
 		>
-			<div className='flex-grow'>
+			<div className='flex-grow min-w-0'>
 				<RepliedSender sender={repliedMessage.sender} />
-				<p className='text-gray-300 text-xs flex items-center'>
-					<span className='material-icons mr-1'>audio track</span>
-					Audio
-					{repliedMessage.duration && <span className='ml-2'>({repliedMessage.duration}s)</span>}
+				<p className='text-gray-300 text-xs flex items-center truncate'>
+					<span className='material-icons mr-1 text-sm flex items-center'>
+						{isLoading && '...'}
+						<PhoneIcon />
+						{displayDuration && <span className='ml-2'>{formatTime(displayDuration)}</span>}
+					</span>
 				</p>
 			</div>
+		</ReplyContainer>
+	);
+};
+
+const UnsupportedReplyMessage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: Message; borderColor: string; onNavigate?: () => void }) => {
+	return (
+		<ReplyContainer
+			borderColor={borderColor}
+			onNavigate={onNavigate}
+			className='flex-col'
+		>
+			<RepliedSender sender={repliedMessage.sender} />
+			<p className='text-gray-300 text-xs truncate'>
+				<strong>{repliedMessage.type.toUpperCase()}</strong>: No soportado
+			</p>
 		</ReplyContainer>
 	);
 };
@@ -114,7 +146,13 @@ function ReplyPreview({ repliedMessage, isMe, onNavigate }: ReplyPreviewProps) {
 				/>
 			);
 		default:
-			return null;
+			return (
+				<UnsupportedReplyMessage
+					repliedMessage={repliedMessage as Message}
+					borderColor={borderColor}
+					onNavigate={onNavigate}
+				/>
+			);;
 	}
 }
 
