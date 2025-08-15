@@ -19,11 +19,26 @@ interface ChatBubbleProps {
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 	onNavigateToReply: (messageId: string) => void;
 	isHighlighted?: boolean;
+
+	// Nuevas props para el modo de vinculación
+	isLinkingMode: boolean;
+	isSelected: boolean;
+	onSelectMessage: (messageId: string) => void;
 }
 
 
 
-function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, onNavigateToReply, isHighlighted = false }: ChatBubbleProps) {
+function ChatBubble({
+	message,
+	showTail = false,
+	myUserName,
+	onUpdateMessage,
+	onNavigateToReply,
+	isHighlighted = false,
+	isLinkingMode,
+	isSelected,
+	onSelectMessage,
+}: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
@@ -43,6 +58,10 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, on
 
 	// Clase para el resaltado temporal
 	const highlightClass = isHighlighted ? 'message-highlight' : '';
+
+	// Nuevas clases para el modo de vinculación
+	const linkingClass = isLinkingMode ? 'cursor-pointer border-2' : '';
+	const selectedClass = isSelected ? 'border-blue-500' : 'border-transparent';
 
 	const renderMessageContent = () => {
 		switch (message.type) {
@@ -93,11 +112,16 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, on
 	};
 
 	return (
-		<div className={`flex flex-col relative mb-1 group ${containerClass}`}>
+		<div
+			className={`flex flex-col relative mb-1 group ${containerClass}`}
+			onClick={() => onSelectMessage(message._id)}
+		>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
 			<div className={`flex flex-col ${bubbleAlignmentClass}`}>
-				<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} ${highlightClass} p-1 relative`}>
+				<div
+					className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} ${highlightClass} p-1 relative ${linkingClass} ${selectedClass}`}
+				>
 					{/* Emoji Picker */}
 					{isAdmin && (
 						<EmojiPickerComponent

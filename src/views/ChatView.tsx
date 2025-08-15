@@ -2,14 +2,19 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
-import HeaderChat from '../components/HeaderChat';
+import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import '../views/ChatView.css';
 import { useAuthStore } from '../store/authStore'
+import api from '../services/api'
+import { useUser } from '../hooks/use.user'
 
 const MESSAGE_FETCH_LIMIT = 30
 
 // Componente auxiliar para mostrar estados de carga/error a pantalla completa.
-const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactNode; messagesTotal?: number }) => (
+const ChatStateView = ({
+	children,
+	messagesTotal = 0,
+}: { children: React.ReactNode; messagesTotal?: number } & HeaderChatProps) => (
 	<div className='bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col'>
 		<HeaderChat messagesTotal={messagesTotal} />
 		<div className='flex-grow flex items-center justify-center text-center text-sm'>
@@ -19,13 +24,20 @@ const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactN
 );
 
 export default function ChatView() {
-	const  user  = useAuthStore().user;
+	const user = useAuthStore().user;
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
 		useChat();
+	const isAdmin = useUser().isAdmin
 
 	const [searchingFor, setSearchingFor] = useState<string | null>(null);
 	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 	const [searchStatusMessage, setSearchStatusMessage] = useState<string | null>(null);
+
+	// Estados para el modo de vinculación
+	const [isLinkingMode, setIsLinkingMode] = useState(false);
+	const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
+	const [isSelectingSource, setIsSelectingSource] = useState(false);
+
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	// Carga inicial de mensajes.
@@ -36,7 +48,7 @@ export default function ChatView() {
 		}
 		// La dependencia en fetchMessages es correcta. No necesitamos messages.length
 		// aquí porque solo queremos que se ejecute una vez al inicio si está vacío.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchMessages]);
 
 	const highlightMessage = useCallback((messageId: string) => {
@@ -110,7 +122,133 @@ export default function ChatView() {
 		};
 
 		findAndLoad();
-	}, [searchingFor, messages, hasMore, loading, fetchMoreMessages, firstItemIndex, highlightMessage, showTemporaryStatus]);
+	}, [
+		searchingFor,
+		messages,
+		hasMore,
+		loading,
+		fetchMoreMessages,
+		firstItemIndex,
+		highlightMessage,
+		showTemporaryStatus,
+	]);
+
+	// --- Lógica del Modo de Vínculo (Flujo: Seleccionar respuestas -> Asignar Origen -> Seleccionar Origen) ---
+
+	const assignReplyTo = useCallback(
+		async (sourceId: string) => {
+			if (selectedMessageIds.length === 0) return;
+
+			// Prevenir que un mensaje se responda a sí mismo.
+			if (selectedMessageIds.includes(sourceId)) {
+				showTemporaryStatus('No se puede asignar un mensaje como respuesta a sí mismo.');
+				setIsSelectingSource(false); // Volver al modo de selección de respuestas
+				return;
+			}
+
+			try {
+				// Guardamos una copia de los IDs a procesar
+				const idsToUpdate = [...selectedMessageIds];
+
+				// 1. Actualización optimista en la UI
+				const sourceMessage = messages.find((m) => m._id === sourceId);
+				idsToUpdate.forEach((messageId) => {
+					updateMessage(messageId, { replyTo: sourceMessage ?? ({ _id: sourceId } as any) });
+				});
+
+				// 2. Limpiamos el estado inmediatamente para que la UI vuelva a la normalidad
+				setSelectedMessageIds([]);
+				setIsSelectingSource(false);
+				setIsLinkingMode(false);
+				showTemporaryStatus(`Vinculando ${idsToUpdate.length} mensaje(s)...`);
+
+				// 3. Peticiones al backend en segundo plano
+				await Promise.all(
+					idsToUpdate.map(async (messageId) => {
+						try {
+							await api.put(`/messages/${messageId}/reply`, { replyTo: sourceId });
+						} catch (error) {
+							console.error(`Fallo al vincular el mensaje ${messageId}:`, error);
+							// Aquí se podría implementar un rollback para el mensaje específico que falló
+						}
+					})
+				);
+
+				console.log('Todos los vínculos se procesaron.');
+			} catch (error) {
+				console.error('Error al asignar el vínculo:', error);
+				showTemporaryStatus('Ocurrió un error al vincular los mensajes.');
+				// Rollback general si es necesario
+			}
+		},
+		[selectedMessageIds, updateMessage, messages, showTemporaryStatus]
+	);
+
+	const handleSelectMessage = useCallback(
+		(messageId: string) => {
+			if (!isLinkingMode) return;
+
+			if (isSelectingSource) {
+				// Fase 2: El clic actual selecciona el mensaje de ORIGEN.
+				assignReplyTo(messageId);
+			} else {
+				// Fase 1: El clic actual añade o quita un mensaje de la lista de RESPUESTAS.
+				setSelectedMessageIds((prevIds) => {
+					if (prevIds.includes(messageId)) {
+						return prevIds.filter((id) => id !== messageId); // Deseleccionar
+					} else {
+						return [...prevIds, messageId];
+					}
+				});
+			}
+		},
+		[isLinkingMode, isSelectingSource, assignReplyTo]
+	);
+
+	const toggleLinkingMode = useCallback(() => {
+		const nextState = !isLinkingMode;
+		setIsLinkingMode(nextState);
+		// Resetear todo al salir del modo
+		if (!nextState) {
+			setSelectedMessageIds([]);
+			setIsSelectingSource(false);
+		}
+	}, []);
+
+	const renderLinkModeUI = () => {
+		if (!isLinkingMode) return null;
+
+		if (isSelectingSource) {
+			return (
+				<div className='fixed bottom-0 left-0 right-0 p-4 bg-green-800 text-white z-20 text-center'>
+					<p className='font-semibold'>Ahora, selecciona el mensaje de ORIGEN.</p>
+				</div>
+			);
+		}
+
+		return (
+			<div className='fixed bottom-0 left-0 right-0 p-4 bg-gray-900 text-white z-20'>
+				<div className='flex justify-between items-center'>
+					<span>{selectedMessageIds.length} mensajes seleccionados</span>
+					<div>
+						<button
+							onClick={() => setIsSelectingSource(true)}
+							className='px-4 py-2 bg-blue-500 rounded-lg disabled:opacity-50 mr-2'
+							disabled={selectedMessageIds.length === 0}
+						>
+							Asignar Origen
+						</button>
+						<button
+							onClick={toggleLinkingMode}
+							className='px-4 py-2 bg-red-500 rounded-lg'
+						>
+							Cancelar
+						</button>
+					</div>
+				</div>
+			</div>
+		);
+	};
 
 	// Manejo de estados iniciales (carga y error)
 	const isInitialState = messages.length === 0;
@@ -125,7 +263,16 @@ export default function ChatView() {
 
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
-			<HeaderChat messagesTotal={totalMessages} />
+			<HeaderChat messagesTotal={totalMessages}>
+				{isAdmin && (
+					<button
+						onClick={toggleLinkingMode}
+						className={`px-3 py-1 text-xs rounded ${isLinkingMode ? 'bg-red-500' : 'bg-blue-500'} hover:bg-opacity-80`}
+					>
+						{isLinkingMode ? 'Cancelar Vínculo' : 'Activar Modo Vínculo'}
+					</button>
+				)}
+			</HeaderChat>
 
 			{searchStatusMessage && (
 				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-4 py-2 rounded-md shadow-lg z-20 animate-pulse'>
@@ -161,6 +308,11 @@ export default function ChatView() {
 							myUserName={user?.username}
 							onNavigateToReply={handleNavigateToReply}
 							isHighlighted={msg._id === highlightedMessageId}
+							
+							// --- Lógica del Modo de Vínculo ---
+							onSelectMessage={handleSelectMessage}
+							isSelected={isLinkingMode && selectedMessageIds.includes(msg._id)}
+							isLinkingMode={isLinkingMode}
 						/>
 					);
 				}}
@@ -190,6 +342,7 @@ export default function ChatView() {
 				}}
 				className='scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
 			/>
+			{renderLinkModeUI()}
 		</div>
 	);
 }
