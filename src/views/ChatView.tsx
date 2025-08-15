@@ -107,7 +107,8 @@ export default function ChatView() {
 					);
 				}}
 				components={{
-					Item: ({ children, ...props }) => (
+					// eslint-disable-next-line @typescript-eslint/no-unused-vars
+					Item: ({ children, item, ...props }) => (
 						<div
 							{...props}
 							className='px-4 max-w-2xl mx-auto mb-2'
