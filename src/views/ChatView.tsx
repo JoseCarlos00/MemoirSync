@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
@@ -19,10 +19,12 @@ const ChatStateView = ({ children, messagesTotal = 0 }: { children: React.ReactN
 );
 
 export default function ChatView() {
-	const { user } = useAuthStore();
+	const  user  = useAuthStore().user;
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
 		useChat();
 
+	const [searchingFor, setSearchingFor] = useState<string | null>(null);
+	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	// Carga inicial de mensajes.
@@ -36,6 +38,14 @@ export default function ChatView() {
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchMessages]);
 
+	const highlightMessage = useCallback((messageId: string) => {
+		setHighlightedMessageId(messageId);
+		// Quitar el resaltado después de un tiempo para que sea temporal
+		setTimeout(() => {
+			setHighlightedMessageId(null);
+		}, 2500); // 2.5 segundos
+	}, []);
+
 	const loadMore = useCallback(async () => {
 		if (!hasMore || loading) return;
 		// Al usar firstItemIndex, Virtuoso maneja el ajuste del scroll automáticamente.
@@ -47,20 +57,51 @@ export default function ChatView() {
 	const handleNavigateToReply = useCallback(
 		(messageId: string) => {
 			const index = messages.findIndex((m) => m._id === messageId);
-			
+
 			if (index !== -1 && virtuosoRef.current) {
 				virtuosoRef.current.scrollToIndex({
 					index: index + firstItemIndex, // Virtuoso necesita el índice absoluto
 					align: 'center',
 					behavior: 'smooth',
 				});
+				highlightMessage(messageId);
+			} else if (hasMore) {
+				setSearchingFor(messageId);
 			} else {
-				// Opcional: manejar el caso en que el mensaje no está cargado
-				alert('El mensaje original no está cargado. Desplázate hacia arriba para cargarlo.');
+				alert('El mensaje original no se pudo encontrar y no hay más mensajes que cargar.');
 			}
 		},
-		[messages, firstItemIndex]
+		[messages, firstItemIndex, hasMore, highlightMessage]
 	);
+
+	// Efecto para buscar y cargar mensajes hasta encontrar el respondido.
+	useEffect(() => {
+		const findAndLoad = async () => {
+			if (!searchingFor || loading) return;
+
+			const index = messages.findIndex((m) => m._id === searchingFor);
+			if (index !== -1) {
+				// Mensaje encontrado, hacemos scroll, lo resaltamos y terminamos la búsqueda.
+				virtuosoRef.current?.scrollToIndex({
+					index: index + firstItemIndex,
+					align: 'center',
+					behavior: 'smooth',
+				});
+				highlightMessage(searchingFor);
+				setSearchingFor(null);
+			} else if (hasMore) {
+				// Si no se encuentra y hay más, cargamos el siguiente lote.
+				await fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
+			} else {
+				// No hay más mensajes y no se encontró.
+				alert('No se pudo encontrar el mensaje original después de cargar todo el historial.');
+				setSearchingFor(null);
+			}
+		};
+
+		findAndLoad();
+	}, [searchingFor, messages, hasMore, loading, fetchMoreMessages, firstItemIndex, highlightMessage]);
+
 	// Manejo de estados iniciales (carga y error)
 	const isInitialState = messages.length === 0;
 	if (isInitialState && (loading || error)) {
@@ -103,6 +144,7 @@ export default function ChatView() {
 							onUpdateMessage={updateMessage}
 							myUserName={user?.username}
 							onNavigateToReply={handleNavigateToReply}
+							isHighlighted={msg._id === highlightedMessageId}
 						/>
 					);
 				}}

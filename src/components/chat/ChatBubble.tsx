@@ -18,11 +18,12 @@ interface ChatBubbleProps {
 	myUserName?: string;
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 	onNavigateToReply: (messageId: string) => void;
+	isHighlighted?: boolean;
 }
 
 
 
-function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, onNavigateToReply }: ChatBubbleProps) {
+function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, onNavigateToReply, isHighlighted = false }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
@@ -39,6 +40,9 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, on
 	const tailClass = showTail ? (isMe ? 'rounded-tr-none' : 'rounded-tl-none') : '';
 	// Clases especiales para stickers
 	const stickerClass = message.type === 'sticker' ? 'bg-transparent shadow-none' : 'text-white';
+
+	// Clase para el resaltado temporal
+	const highlightClass = isHighlighted ? 'message-highlight' : '';
 
 	const renderMessageContent = () => {
 		switch (message.type) {
@@ -93,7 +97,7 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, on
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
 			<div className={`flex flex-col ${bubbleAlignmentClass}`}>
-				<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} p-1 relative`}>
+				<div className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} ${highlightClass} p-1 relative`}>
 					{/* Emoji Picker */}
 					{isAdmin && (
 						<EmojiPickerComponent
