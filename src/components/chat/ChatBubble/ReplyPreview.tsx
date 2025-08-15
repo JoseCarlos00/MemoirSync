@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { Message, TextMessage, MediaMessage } from '../../../interfaces/message';
+import { useAuthStore } from '../../../store/authStore';
 
 interface ReplyPreviewProps {
 	repliedMessage: Message;
@@ -8,13 +9,16 @@ interface ReplyPreviewProps {
 }
 
 const ReplyText = ({ repliedMessage, borderColor }: { repliedMessage: TextMessage; borderColor: string }) => {
+    const user = useAuthStore().user;
+    const { sender, content } = repliedMessage
+
 	return (
 		<div
 			// onClick={onNavigate}
 			className={`flex flex-col border-l-4 p-2 rounded-md bg-gray-700 cursor-pointer ${borderColor}`}
 		>
-			<p className='text-blue-400 text-sm font-bold truncate'>{repliedMessage.sender}</p>
-			<p className='text-gray-300 text-xs ml-2 truncate'>{repliedMessage.content}</p>
+			<p className='text-blue-400 text-sm font-bold truncate'>{ sender === user?.username ? 'Tú' : sender}</p>
+			<p className='text-gray-300 text-xs ml-2 truncate'>{content}</p>
 		</div>
 	);
 };
