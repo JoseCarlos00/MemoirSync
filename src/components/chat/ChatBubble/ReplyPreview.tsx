@@ -2,7 +2,7 @@ import { memo } from 'react';
 import type { Message, TextMessage, MediaMessage } from '../../../interfaces/message';
 import { useAuthStore } from '../../../store/authStore';
 import { useAudioDuration } from '../../../hooks/useAudioDuration';
-import PhoneIcon from '../../icons/PhoneIcon'
+import PhoneIcon from '../../icons/PhoneIcon';
 
 interface ReplyPreviewProps {
 	repliedMessage: Message;
@@ -43,7 +43,15 @@ const ReplyContainer = ({
 	</div>
 );
 
-const ReplyText = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: TextMessage; borderColor: string; onNavigate?: () => void }) => {
+const ReplyText = ({
+	repliedMessage,
+	borderColor,
+	onNavigate,
+}: {
+	repliedMessage: TextMessage;
+	borderColor: string;
+	onNavigate?: () => void;
+}) => {
 	return (
 		<ReplyContainer
 			borderColor={borderColor}
@@ -56,9 +64,20 @@ const ReplyText = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage
 	);
 };
 
-const ReplyImage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: MediaMessage; borderColor: string; onNavigate?: () => void }) => {
+const ReplyImage = ({
+	repliedMessage,
+	borderColor,
+	onNavigate,
+}: {
+	repliedMessage: MediaMessage;
+	borderColor: string;
+	onNavigate?: () => void;
+}) => {
 	return (
-		<ReplyContainer borderColor={borderColor} onNavigate={onNavigate}>
+		<ReplyContainer
+			borderColor={borderColor}
+			onNavigate={onNavigate}
+		>
 			<div className='flex-grow'>
 				<RepliedSender sender={repliedMessage.sender} />
 				<p className='text-gray-300 text-xs truncate'>{repliedMessage.caption || 'Foto'}</p>
@@ -72,7 +91,15 @@ const ReplyImage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessag
 	);
 };
 
-const ReplyAudio = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: MediaMessage; borderColor: string; onNavigate?: () => void }) => {
+const ReplyAudio = ({
+	repliedMessage,
+	borderColor,
+	onNavigate,
+}: {
+	repliedMessage: MediaMessage;
+	borderColor: string;
+	onNavigate?: () => void;
+}) => {
 	// Usamos el hook si la duración no está en los datos del mensaje.
 	const { duration: calculatedDuration, isLoading } = useAudioDuration(
 		!repliedMessage.duration ? repliedMessage.mediaUrl : undefined
@@ -100,7 +127,40 @@ const ReplyAudio = ({ repliedMessage, borderColor, onNavigate }: { repliedMessag
 	);
 };
 
-const UnsupportedReplyMessage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: Message; borderColor: string; onNavigate?: () => void }) => {
+const ReplySticker = ({
+	repliedMessage,
+	borderColor,
+	onNavigate,
+}: {
+	repliedMessage: MediaMessage;
+	borderColor: string;
+	onNavigate?: () => void;
+}) => {
+	return (
+		<ReplyContainer
+			borderColor={borderColor}
+			onNavigate={onNavigate}
+			className='flex-col'
+		>
+			<RepliedSender sender={repliedMessage.sender} />
+			<img
+				src={repliedMessage.thumbnailUrl || repliedMessage.mediaUrl}
+				alt='Miniatura'
+				className='w-12 h-12 object-cover rounded ml-2'
+			/>
+		</ReplyContainer>
+	);
+};
+
+const UnsupportedReplyMessage = ({
+	repliedMessage,
+	borderColor,
+	onNavigate,
+}: {
+	repliedMessage: Message;
+	borderColor: string;
+	onNavigate?: () => void;
+}) => {
 	return (
 		<ReplyContainer
 			borderColor={borderColor}
@@ -138,8 +198,16 @@ function ReplyPreview({ repliedMessage, isMe, onNavigate }: ReplyPreviewProps) {
 				/>
 			);
 		case 'audio':
-      return (
+			return (
 				<ReplyAudio
+					repliedMessage={repliedMessage as MediaMessage}
+					borderColor={borderColor}
+					onNavigate={onNavigate}
+				/>
+			);
+		case 'sticker':
+			return (
+				<ReplySticker
 					repliedMessage={repliedMessage as MediaMessage}
 					borderColor={borderColor}
 					onNavigate={onNavigate}
@@ -152,7 +220,7 @@ function ReplyPreview({ repliedMessage, isMe, onNavigate }: ReplyPreviewProps) {
 					borderColor={borderColor}
 					onNavigate={onNavigate}
 				/>
-			);;
+			);
 	}
 }
 
