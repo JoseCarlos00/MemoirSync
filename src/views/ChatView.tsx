@@ -25,6 +25,7 @@ export default function ChatView() {
 
 	const [searchingFor, setSearchingFor] = useState<string | null>(null);
 	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+	const [searchStatusMessage, setSearchStatusMessage] = useState<string | null>(null);
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	// Carga inicial de mensajes.
@@ -54,6 +55,13 @@ export default function ChatView() {
 
 	const firstItemIndex = hasMore ? totalMessages - messages.length : 0;
 
+	const showTemporaryStatus = useCallback((message: string) => {
+		setSearchStatusMessage(message);
+		setTimeout(() => {
+			setSearchStatusMessage(null);
+		}, 3000); // Ocultar después de 3 segundos
+	}, []);
+
 	const handleNavigateToReply = useCallback(
 		(messageId: string) => {
 			const index = messages.findIndex((m) => m._id === messageId);
@@ -66,12 +74,13 @@ export default function ChatView() {
 				});
 				highlightMessage(messageId);
 			} else if (hasMore) {
+				setSearchStatusMessage('Buscando mensaje original...');
 				setSearchingFor(messageId);
 			} else {
-				alert('El mensaje original no se pudo encontrar y no hay más mensajes que cargar.');
+				showTemporaryStatus('El mensaje original no se pudo encontrar y no hay más mensajes que cargar.');
 			}
 		},
-		[messages, firstItemIndex, hasMore, highlightMessage]
+		[messages, firstItemIndex, hasMore, highlightMessage, showTemporaryStatus]
 	);
 
 	// Efecto para buscar y cargar mensajes hasta encontrar el respondido.
@@ -88,19 +97,20 @@ export default function ChatView() {
 					behavior: 'smooth',
 				});
 				highlightMessage(searchingFor);
+				setSearchStatusMessage(null); // Limpiar mensaje de estado
 				setSearchingFor(null);
 			} else if (hasMore) {
 				// Si no se encuentra y hay más, cargamos el siguiente lote.
 				await fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
 			} else {
 				// No hay más mensajes y no se encontró.
-				alert('No se pudo encontrar el mensaje original después de cargar todo el historial.');
+				showTemporaryStatus('No se pudo encontrar el mensaje original tras buscar en todo el historial.');
 				setSearchingFor(null);
 			}
 		};
 
 		findAndLoad();
-	}, [searchingFor, messages, hasMore, loading, fetchMoreMessages, firstItemIndex, highlightMessage]);
+	}, [searchingFor, messages, hasMore, loading, fetchMoreMessages, firstItemIndex, highlightMessage, showTemporaryStatus]);
 
 	// Manejo de estados iniciales (carga y error)
 	const isInitialState = messages.length === 0;
@@ -116,6 +126,12 @@ export default function ChatView() {
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
 			<HeaderChat messagesTotal={totalMessages} />
+
+			{searchStatusMessage && (
+				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-4 py-2 rounded-md shadow-lg z-20 animate-pulse'>
+					{searchStatusMessage}
+				</div>
+			)}
 
 			<Virtuoso
 				ref={virtuosoRef}
