@@ -44,6 +44,23 @@ export default function ChatView() {
 
 	const firstItemIndex = hasMore ? totalMessages - messages.length : 0;
 
+	const handleNavigateToReply = useCallback(
+		(messageId: string) => {
+			const index = messages.findIndex((m) => m._id === messageId);
+			
+			if (index !== -1 && virtuosoRef.current) {
+				virtuosoRef.current.scrollToIndex({
+					index: index + firstItemIndex, // Virtuoso necesita el índice absoluto
+					align: 'center',
+					behavior: 'smooth',
+				});
+			} else {
+				// Opcional: manejar el caso en que el mensaje no está cargado
+				alert('El mensaje original no está cargado. Desplázate hacia arriba para cargarlo.');
+			}
+		},
+		[messages, firstItemIndex]
+	);
 	// Manejo de estados iniciales (carga y error)
 	const isInitialState = messages.length === 0;
 	if (isInitialState && (loading || error)) {
@@ -85,6 +102,7 @@ export default function ChatView() {
 							showTail={showTail}
 							onUpdateMessage={updateMessage}
 							myUserName={user?.username}
+							onNavigateToReply={handleNavigateToReply}
 						/>
 					);
 				}}

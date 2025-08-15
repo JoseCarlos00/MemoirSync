@@ -17,11 +17,12 @@ interface ChatBubbleProps {
 	showTail: boolean;
 	myUserName?: string;
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
+	onNavigateToReply: (messageId: string) => void;
 }
 
 
 
-function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: ChatBubbleProps) {
+function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage, onNavigateToReply }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
 	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
 
@@ -109,7 +110,7 @@ function ChatBubble({ message, showTail = false, myUserName, onUpdateMessage }: 
 							<ReplyPreview
 								repliedMessage={message.replyTo}
 								isMe={isMe}
-								// onNavigate={() => onNavigateToReply(message.replyTo._id)}
+								onNavigate={() => message.replyTo?._id && onNavigateToReply(message.replyTo._id)}
 							/>
 						)}
 						{/* Contenido del mensaje */}

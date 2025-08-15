@@ -20,24 +20,27 @@ const ReplyContainer = ({
 	borderColor,
 	children,
 	className,
+	onNavigate,
 }: {
 	borderColor: string;
 	children: React.ReactNode;
 	className?: string;
+	onNavigate?: () => void;
 }) => (
 	<div
-		// onClick={onNavigate}
+		onClick={onNavigate}
 		className={`flex border-l-4 p-2 rounded-md bg-gray-700 cursor-pointer ${borderColor} ${className || ''}`}
 	>
 		{children}
 	</div>
 );
 
-const ReplyText = ({ repliedMessage, borderColor }: { repliedMessage: TextMessage; borderColor: string }) => {
+const ReplyText = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: TextMessage; borderColor: string; onNavigate?: () => void }) => {
 	return (
 		<ReplyContainer
 			borderColor={borderColor}
 			className='flex-col'
+			onNavigate={onNavigate}
 		>
 			<RepliedSender sender={repliedMessage.sender} />
 			<p className='text-gray-300 text-xs ml-2 truncate'>{repliedMessage.content}</p>
@@ -45,9 +48,9 @@ const ReplyText = ({ repliedMessage, borderColor }: { repliedMessage: TextMessag
 	);
 };
 
-const ReplyImage = ({ repliedMessage, borderColor }: { repliedMessage: MediaMessage; borderColor: string }) => {
+const ReplyImage = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: MediaMessage; borderColor: string; onNavigate?: () => void }) => {
 	return (
-		<ReplyContainer borderColor={borderColor}>
+		<ReplyContainer borderColor={borderColor} onNavigate={onNavigate}>
 			<div className='flex-grow'>
 				<RepliedSender sender={repliedMessage.sender} />
 				<p className='text-gray-300 text-xs truncate'>{repliedMessage.caption || 'Foto'}</p>
@@ -61,11 +64,12 @@ const ReplyImage = ({ repliedMessage, borderColor }: { repliedMessage: MediaMess
 	);
 };
 
-const ReplyAudio = ({ repliedMessage, borderColor }: { repliedMessage: MediaMessage; borderColor: string }) => {
+const ReplyAudio = ({ repliedMessage, borderColor, onNavigate }: { repliedMessage: MediaMessage; borderColor: string; onNavigate?: () => void }) => {
 	return (
 		<ReplyContainer
 			borderColor={borderColor}
 			className='items-center'
+			onNavigate={onNavigate}
 		>
 			<div className='flex-grow'>
 				<RepliedSender sender={repliedMessage.sender} />
@@ -79,7 +83,7 @@ const ReplyAudio = ({ repliedMessage, borderColor }: { repliedMessage: MediaMess
 	);
 };
 
-function ReplyPreview({ repliedMessage, isMe }: ReplyPreviewProps) {
+function ReplyPreview({ repliedMessage, isMe, onNavigate }: ReplyPreviewProps) {
 	if (!repliedMessage) return null;
 
 	const borderColor = isMe ? 'border-chat-received' : 'border-chat-sent';
@@ -90,6 +94,7 @@ function ReplyPreview({ repliedMessage, isMe }: ReplyPreviewProps) {
 				<ReplyText
 					repliedMessage={repliedMessage as TextMessage}
 					borderColor={borderColor}
+					onNavigate={onNavigate}
 				/>
 			);
 		case 'image':
@@ -97,6 +102,7 @@ function ReplyPreview({ repliedMessage, isMe }: ReplyPreviewProps) {
 				<ReplyImage
 					repliedMessage={repliedMessage as MediaMessage}
 					borderColor={borderColor}
+					onNavigate={onNavigate}
 				/>
 			);
 		case 'audio':
@@ -104,6 +110,7 @@ function ReplyPreview({ repliedMessage, isMe }: ReplyPreviewProps) {
 				<ReplyAudio
 					repliedMessage={repliedMessage as MediaMessage}
 					borderColor={borderColor}
+					onNavigate={onNavigate}
 				/>
 			);
 		default:
