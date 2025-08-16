@@ -1,8 +1,7 @@
 import { useState, useCallback, useEffect, type RefObject } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
 import { type Message } from '../interfaces/message';
-
-const MESSAGE_FETCH_LIMIT = 30;
+import { HIGHLIGHT_DURATION_MS, MESSAGE_FETCH_LIMIT } from '../config/constants';
 
 interface UseMessageNavigationProps {
 	messages: Message[];
@@ -32,7 +31,7 @@ export const useMessageNavigation = ({
 		// Quitar el resaltado después de un tiempo para que sea temporal
 		setTimeout(() => {
 			setHighlightedMessageId(null);
-		}, 2500); // 2.5 segundos
+		}, HIGHLIGHT_DURATION_MS);
 	}, []);
 
 	const handleNavigateToReply = useCallback(

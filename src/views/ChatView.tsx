@@ -5,10 +5,9 @@ import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import '../views/ChatView.css';
 import { useAuthStore } from '../store/authStore'
-import { useLinkingMode } from '../hooks/useLinkingMode';
 import { useUser } from '../hooks/use.user'
-
-const MESSAGE_FETCH_LIMIT = 30
+import { useLinkingMode } from '../hooks/useLinkingMode';
+import { MESSAGE_FETCH_LIMIT } from '../config/constants';
 
 // Componente auxiliar para mostrar estados de carga/error a pantalla completa.
 const ChatStateView = ({
