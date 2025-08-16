@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { useChatStore } from '../store/chatStore';
 import api from '../services/api';
+import { MEDIA_URL_REPLACE_FROM, MEDIA_URL_REPLACE_TO } from '../config/constants';
 import { type Message } from '../interfaces/message';
 
 interface FetchMessagesOptions {
@@ -33,12 +34,12 @@ export function useChat() {
 			try {
 				const { data } = await api.get('/messages', { params: options });
 
-				setMessages(data.messages);
+				const parsedMessages = parseMessage(data.messages as Message[]);
+				setMessages(parsedMessages);
 				setTotalMessages(data.total);
 				setError(null); // Limpiar errores si la petición es exitosa
 
 				console.log('Messages fetched:', data);
-				
 			} catch (error) {
 				console.error('Error fetching messages:', error);
 				setError('No se pudieron cargar los mensajes.');
@@ -61,7 +62,9 @@ export function useChat() {
 					params: { ...options, beforeId: firstMsgId },
 				});
 
-				addMessages(data.messages);
+				const parsedMessages = parseMessage(data.messages as Message[]);
+				
+				addMessages(parsedMessages);
 				// El backend puede devolver un total actualizado (ej. si se añaden nuevos mensajes mientras navegas).
 				// Actualizarlo asegura que la condición `hasMore` sea siempre correcta.
 				if (typeof data.total === 'number') {
@@ -98,4 +101,33 @@ export function useChat() {
 		error,
 		updateMessage,
 	};
+}
+
+function parseMessage(messages:Message[]) {
+	// Si no hay valores para reemplazar, devolvemos los mensajes originales.
+	if (!MEDIA_URL_REPLACE_FROM || !MEDIA_URL_REPLACE_TO) {
+		return messages;
+	}
+
+	return messages.map((message) => {
+		// Solo modifica mensajes que no son de texto y tienen una mediaUrl
+		if (message.type !== 'text') {
+			return {
+				...message,
+				mediaUrl: message.mediaUrl.replace(MEDIA_URL_REPLACE_FROM, MEDIA_URL_REPLACE_TO),
+			};
+		}
+
+		if (message.replyTo && message.replyTo.type !== 'text') {
+			return {
+				...message,
+				replyTo: {
+					...message.replyTo,
+					mediaUrl: message.replyTo.mediaUrl.replace(MEDIA_URL_REPLACE_FROM, MEDIA_URL_REPLACE_TO),
+				}
+		}
+		}
+		// Devuelve el mensaje original si no necesita modificación.
+		return message;
+	});
 }
