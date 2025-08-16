@@ -1,18 +1,19 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import { useChat } from '../hooks/useChat';
 import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
-import '../views/ChatView.css';
-import { useAuthStore } from '../store/authStore'
-import { useUser } from '../hooks/use.user'
-import { useLinkingMode } from '../hooks/useLinkingMode';
 import { MESSAGE_FETCH_LIMIT } from '../config/constants';
+import { useUser } from '../hooks/use.user';
+import { useChat } from '../hooks/useChat';
+import { useLinkingMode } from '../hooks/useLinkingMode';
+import { useMessageNavigation } from '../hooks/useMessageNavigation';
+import { useAuthStore } from '../store/authStore';
+import '../views/ChatView.css';
 
 // Componente auxiliar para mostrar estados de carga/error a pantalla completa.
 const ChatStateView = ({
 	children,
-	messagesTotal = 0,
+	messagesTotal,
 }: { children: React.ReactNode; messagesTotal?: number } & HeaderChatProps) => (
 	<div className='bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col'>
 		<HeaderChat messagesTotal={messagesTotal} />
@@ -27,9 +28,7 @@ export default function ChatView() {
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
 		useChat();
 	const isAdmin = useUser().isAdmin
-
-	const [searchingFor, setSearchingFor] = useState<string | null>(null);
-	const [searchStatusMessage, setSearchStatusMessage] = useState<string | null>(null);
+	const [localTemporaryStatus, setLocalTemporaryStatus] = useState<string | null>(null);
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	// Carga inicial de mensajes.
@@ -52,15 +51,6 @@ export default function ChatView() {
 		assignReplyTo,
 		toggleLinkingMode,
 	} = useLinkingMode({ messages, updateMessage, showTemporaryStatus: (msg) => showTemporaryStatus(msg) });
-	
-	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
-	const highlightMessage = useCallback((messageId: string) => {
-		setHighlightedMessageId(messageId);
-		// Quitar el resaltado después de un tiempo para que sea temporal
-		setTimeout(() => {
-			setHighlightedMessageId(null);
-		}, 2500); // 2.5 segundos
-	}, []);
 
 	const loadMore = useCallback(async () => {
 		if (!hasMore || loading) return;
@@ -71,70 +61,21 @@ export default function ChatView() {
 	const firstItemIndex = hasMore ? totalMessages - messages.length : 0;
 
 	const showTemporaryStatus = useCallback((message: string) => {
-		setSearchStatusMessage(message);
+		setLocalTemporaryStatus(message);
 		setTimeout(() => {
-			setSearchStatusMessage(null);
+			setLocalTemporaryStatus(null);
 		}, 3000); // Ocultar después de 3 segundos
 	}, []);
 
-	const handleNavigateToReply = useCallback(
-		(messageId: string) => {
-			const index = messages.findIndex((m) => m._id === messageId);
-
-			if (index !== -1 && virtuosoRef.current) {
-				virtuosoRef.current.scrollToIndex({
-					index: index + firstItemIndex, // Virtuoso necesita el índice absoluto
-					align: 'center',
-					behavior: 'smooth',
-				});
-				highlightMessage(messageId);
-			} else if (hasMore) {
-				setSearchStatusMessage('Buscando mensaje original...');
-				setSearchingFor(messageId);
-			} else {
-				showTemporaryStatus('El mensaje original no se pudo encontrar y no hay más mensajes que cargar.');
-			}
-		},
-		[messages, firstItemIndex, hasMore, highlightMessage, showTemporaryStatus]
-	);
-
-	// Efecto para buscar y cargar mensajes hasta encontrar el respondido.
-	useEffect(() => {
-		const findAndLoad = async () => {
-			if (!searchingFor || loading) return;
-
-			const index = messages.findIndex((m) => m._id === searchingFor);
-			if (index !== -1) {
-				// Mensaje encontrado, hacemos scroll, lo resaltamos y terminamos la búsqueda.
-				virtuosoRef.current?.scrollToIndex({
-					index: index + firstItemIndex,
-					align: 'center',
-					behavior: 'smooth',
-				});
-				highlightMessage(searchingFor);
-				setSearchStatusMessage(null); // Limpiar mensaje de estado
-				setSearchingFor(null);
-			} else if (hasMore) {
-				// Si no se encuentra y hay más, cargamos el siguiente lote.
-				await fetchMoreMessages({ limit: MESSAGE_FETCH_LIMIT });
-			} else {
-				// No hay más mensajes y no se encontró.
-				showTemporaryStatus('No se pudo encontrar el mensaje original tras buscar en todo el historial.');
-				setSearchingFor(null);
-			}
-		};
-
-		findAndLoad();
-	}, [
-		searchingFor,
+	const { highlightedMessageId, searchStatusMessage, handleNavigateToReply } = useMessageNavigation({
 		messages,
 		hasMore,
 		loading,
 		fetchMoreMessages,
+		virtuosoRef,
 		firstItemIndex,
-		highlightMessage,
 		showTemporaryStatus,
-	]);
+	});
 
 	const handleSelectMessage = useCallback(
 		(messageId: string) => {
@@ -154,7 +95,7 @@ export default function ChatView() {
 				});
 			}
 		},
-		[isLinkingMode, isSelectingSource, assignReplyTo]
+		[isLinkingMode, isSelectingSource, assignReplyTo, setSelectedMessageIds]
 	);
 
 	const renderLinkModeUI = () => {
@@ -196,7 +137,7 @@ export default function ChatView() {
 	const isInitialState = messages.length === 0;
 	if (isInitialState && (loading || error)) {
 		return (
-			<ChatStateView>
+			<ChatStateView messagesTotal={totalMessages}>
 				{loading && <p className='text-gray-400'>Cargando mensajes...</p>}
 				{error && <p className='text-red-400'>{error}</p>}
 			</ChatStateView>
@@ -219,6 +160,12 @@ export default function ChatView() {
 			{searchStatusMessage && (
 				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-4 py-2 rounded-md shadow-lg z-20 animate-pulse'>
 					{searchStatusMessage}
+				</div>
+			)}
+
+			{localTemporaryStatus && (
+				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg z-20'>
+					{localTemporaryStatus}
 				</div>
 			)}
 
