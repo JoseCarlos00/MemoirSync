@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
-import ChatBubble from '../components/chat/ChatBubble';
+import { type VirtuosoHandle } from 'react-virtuoso';
+import { MessageList } from '../components/chat/MessageList';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import { MESSAGE_FETCH_LIMIT } from '../config/constants';
 import { useUser } from '../hooks/use.user';
@@ -169,68 +169,23 @@ export default function ChatView() {
 				</div>
 			)}
 
-			<Virtuoso
-				ref={virtuosoRef}
-				style={{ height: 'calc(100vh - 88px)' }}
+			<MessageList
+				messages={messages}
+				loading={loading}
+				hasMore={hasMore}
+				error={error}
 				firstItemIndex={firstItemIndex}
-				followOutput='auto'
-				data={messages}
-				initialTopMostItemIndex={messages.length - 1}
-				startReached={loadMore}
-				computeItemKey={(_index, msg) => msg._id}
-				increaseViewportBy={{ top: 800, bottom: 200 }}
-				itemContent={(index, msg) => {
-					// `index` es el índice absoluto en la lista virtual.
-					// Necesitamos calcular el índice relativo al array `messages`.
-					const localIndex = index - firstItemIndex;
-					const prevMessage = messages[localIndex - 1];
-
-					// La cola se muestra si es el primer mensaje del array (no hay anterior)
-					// o si el emisor del mensaje anterior es diferente.
-					const showTail = !prevMessage || prevMessage.sender !== msg.sender;
-
-					return (
-						<ChatBubble
-							message={msg}
-							showTail={showTail}
-							onUpdateMessage={updateMessage}
-							myUserName={user?.username}
-							onNavigateToReply={handleNavigateToReply}
-							isHighlighted={msg._id === highlightedMessageId}
-							
-							// --- Lógica del Modo de Vínculo ---
-							onSelectMessage={handleSelectMessage}
-							isSelected={isLinkingMode && selectedMessageIds.includes(msg._id)}
-							isLinkingMode={isLinkingMode}
-						/>
-					);
-				}}
-				components={{
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					Item: ({ children, item, ...props }) => (
-						<div
-							{...props}
-							className='px-4 max-w-2xl mx-auto mb-2'
-						>
-							{children}
-						</div>
-					),
-					Header: () => {
-						// Solo muestra el indicador de carga si realmente está cargando y hay más mensajes.
-						// Muestra "Fin de la conversación" solo si no está cargando y ya no hay más mensajes.
-						return (
-							<div className='h-12 flex justify-center items-center text-center text-sm text-gray-400'>
-								{loading && hasMore && 'Cargando más mensajes...'}
-								{!loading && !hasMore && messages.length > 0 && 'Fin de la conversación.'}
-							</div>
-						);
-					},
-					Footer: () => (
-						<div className='pb-2'>{error && <div className='text-center text-sm text-red-400 py-2'>{error}</div>}</div>
-					),
-				}}
-				className='scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800'
+				virtuosoRef={virtuosoRef}
+				loadMore={loadMore}
+				user={user}
+				updateMessage={updateMessage}
+				handleNavigateToReply={handleNavigateToReply}
+				highlightedMessageId={highlightedMessageId}
+				handleSelectMessage={handleSelectMessage}
+				selectedMessageIds={selectedMessageIds}
+				isLinkingMode={isLinkingMode}
 			/>
+
 			{renderLinkModeUI()}
 		</div>
 	);
