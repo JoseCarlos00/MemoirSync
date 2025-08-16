@@ -59,7 +59,7 @@ function ChatBubble({
 
 	// Nuevas clases para el modo de vinculación
 	const linkingClass = isLinkingMode ? 'cursor-pointer border-2' : '';
-	const selectedClass = isSelected ? 'border-blue-500' : 'border-transparent';
+	const selectedClass = isSelected ? 'border-blue-700' : 'border-transparent';
 
 	const renderMessageContent = () => {
 		switch (message.type) {
