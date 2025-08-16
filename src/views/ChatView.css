@@ -18,14 +18,50 @@
 }
 
 .message-highlight {
-  animation: highlight-fade-out 2.5s ease-out forwards;
+  animation: highlight-blink 2.5s ease-out forwards;
 }
 
-@keyframes highlight-fade-out {
+.message-highlight img {
+    animation: highlight-image-glow 2.5s ease-out forwards;
+}
+
+@keyframes highlight-blink {
   0% {
-    background-color: rgba(59, 130, 246, 0.3); /* blue-500 con 30% de opacidad */
+    background-color: rgba(59, 130, 246, 0.4);
+    transform: scale(1.03);
+  }
+  10% {
+    transform: scale(1);
+  }
+  15% {
+    background-color: transparent;
+  }
+  30% {
+    background-color: rgba(59, 130, 246, 0.4);
+  }
+  45% {
+    background-color: transparent;
+  }
+  60% {
+    background-color: rgba(59, 130, 246, 0.4);
   }
   100% {
     background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+@keyframes highlight-image-glow {
+  0%,
+  30%,
+  60% {
+    /* Un resplandor azul para que coincida con el fondo */
+    filter: drop-shadow(2px 4px 6px black);
+  }
+
+  15%,
+  45%,
+  100% {
+    filter: none;
   }
 }
