@@ -26,20 +26,23 @@ export const useLinkingMode = ({ messages, updateMessage, showTemporaryStatus }:
 			const idsToUpdate = [...selectedMessageIds];
 			const sourceMessage = messages.find((m) => m._id === sourceId);
 
+
 			idsToUpdate.forEach((messageId) => {
-				updateMessage(messageId, { replyTo: sourceMessage ?? ({ _id: sourceId } as any) });
+				updateMessage(messageId, { replyTo: sourceMessage});
+				
 			});
 
 			setSelectedMessageIds([]);
 			setIsSelectingSource(false);
-			setIsLinkingMode(false);
+			// setIsLinkingMode(false);
 			showTemporaryStatus(`Vinculando ${idsToUpdate.length} mensaje(s)...`);
 
 			await Promise.all(
 				idsToUpdate.map((messageId) =>
-					api.put(`/messages/${messageId}/reply`, { replyTo: sourceId }).catch((error) => {
+					api.patch(`/messages/${messageId}/reply`, { replyTo: sourceId }).catch((error) => {
 						console.error(`Fallo al vincular el mensaje ${messageId}:`, error);
 						// Aquí se podría implementar un rollback para el mensaje específico que falló
+						updateMessage(messageId, { replyTo: null });
 					})
 				)
 			);
