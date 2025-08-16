@@ -7,8 +7,8 @@ import MessageAudio from './ChatBubble/MessageAudio';
 import MessageVideo from './ChatBubble/MessageVideo';
 import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
-import EmojiPickerComponent from './ChatBubble/EmojiPicker';
-import ReplyPreview from './ChatBubble/ReplyPreview';
+import EmojiPickerComponent from './EmojiPicker';
+import ReplyPreview from './ReplyPreview';
 import { useUser } from '../../hooks/use.user';
 import api from '../../services/api'
 

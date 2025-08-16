@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import type { Message, TextMessage, MediaMessage } from '../../../interfaces/message';
-import { useAuthStore } from '../../../store/authStore';
-import { useAudioDuration } from '../../../hooks/useAudioDuration';
-import PhoneIcon from '../../icons/PhoneIcon';
+import type { Message, TextMessage, MediaMessage } from '../../interfaces/message';
+import { useAuthStore } from '../../store/authStore';
+import { useAudioDuration } from '../../hooks/useAudioDuration';
+import PhoneIcon from '../icons/PhoneIcon';
 
 interface ReplyPreviewProps {
 	repliedMessage: Message;
