@@ -5,7 +5,7 @@ import ChatBubble from '../components/chat/ChatBubble';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import '../views/ChatView.css';
 import { useAuthStore } from '../store/authStore'
-import api from '../services/api'
+import { useLinkingMode } from '../hooks/useLinkingMode';
 import { useUser } from '../hooks/use.user'
 
 const MESSAGE_FETCH_LIMIT = 30
@@ -30,14 +30,7 @@ export default function ChatView() {
 	const isAdmin = useUser().isAdmin
 
 	const [searchingFor, setSearchingFor] = useState<string | null>(null);
-	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 	const [searchStatusMessage, setSearchStatusMessage] = useState<string | null>(null);
-
-	// Estados para el modo de vinculación
-	const [isLinkingMode, setIsLinkingMode] = useState(false);
-	const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
-	const [isSelectingSource, setIsSelectingSource] = useState(false);
-
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
 	// Carga inicial de mensajes.
@@ -51,6 +44,17 @@ export default function ChatView() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [fetchMessages]);
 
+	const {
+		isLinkingMode,
+		selectedMessageIds,
+		isSelectingSource,
+		setSelectedMessageIds,
+		setIsSelectingSource,
+		assignReplyTo,
+		toggleLinkingMode,
+	} = useLinkingMode({ messages, updateMessage, showTemporaryStatus: (msg) => showTemporaryStatus(msg) });
+	
+	const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 	const highlightMessage = useCallback((messageId: string) => {
 		setHighlightedMessageId(messageId);
 		// Quitar el resaltado después de un tiempo para que sea temporal
@@ -133,57 +137,6 @@ export default function ChatView() {
 		showTemporaryStatus,
 	]);
 
-	// --- Lógica del Modo de Vínculo (Flujo: Seleccionar respuestas -> Asignar Origen -> Seleccionar Origen) ---
-
-	const assignReplyTo = useCallback(
-		async (sourceId: string) => {
-			if (selectedMessageIds.length === 0) return;
-
-			// Prevenir que un mensaje se responda a sí mismo.
-			if (selectedMessageIds.includes(sourceId)) {
-				showTemporaryStatus('No se puede asignar un mensaje como respuesta a sí mismo.');
-				setIsSelectingSource(false); // Volver al modo de selección de respuestas
-				return;
-			}
-
-			try {
-				// Guardamos una copia de los IDs a procesar
-				const idsToUpdate = [...selectedMessageIds];
-
-				// 1. Actualización optimista en la UI
-				const sourceMessage = messages.find((m) => m._id === sourceId);
-				idsToUpdate.forEach((messageId) => {
-					updateMessage(messageId, { replyTo: sourceMessage ?? ({ _id: sourceId } as any) });
-				});
-
-				// 2. Limpiamos el estado inmediatamente para que la UI vuelva a la normalidad
-				setSelectedMessageIds([]);
-				setIsSelectingSource(false);
-				setIsLinkingMode(false);
-				showTemporaryStatus(`Vinculando ${idsToUpdate.length} mensaje(s)...`);
-
-				// 3. Peticiones al backend en segundo plano
-				await Promise.all(
-					idsToUpdate.map(async (messageId) => {
-						try {
-							await api.put(`/messages/${messageId}/reply`, { replyTo: sourceId });
-						} catch (error) {
-							console.error(`Fallo al vincular el mensaje ${messageId}:`, error);
-							// Aquí se podría implementar un rollback para el mensaje específico que falló
-						}
-					})
-				);
-
-				console.log('Todos los vínculos se procesaron.');
-			} catch (error) {
-				console.error('Error al asignar el vínculo:', error);
-				showTemporaryStatus('Ocurrió un error al vincular los mensajes.');
-				// Rollback general si es necesario
-			}
-		},
-		[selectedMessageIds, updateMessage, messages, showTemporaryStatus]
-	);
-
 	const handleSelectMessage = useCallback(
 		(messageId: string) => {
 			if (!isLinkingMode) return;
@@ -204,16 +157,6 @@ export default function ChatView() {
 		},
 		[isLinkingMode, isSelectingSource, assignReplyTo]
 	);
-
-	const toggleLinkingMode = useCallback(() => {
-		const nextState = !isLinkingMode;
-		setIsLinkingMode(nextState);
-		// Resetear todo al salir del modo
-		if (!nextState) {
-			setSelectedMessageIds([]);
-			setIsSelectingSource(false);
-		}
-	}, []);
 
 	const renderLinkModeUI = () => {
 		if (!isLinkingMode) return null;
