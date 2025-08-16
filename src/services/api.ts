@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { BASE_URL_API } from '../config/constants';
 
 const api = axios.create({
-	// baseURL: 'https://192.168.1.10:3000/api',
-	baseURL: 'https://localhost:3000/api',
+	baseURL: BASE_URL_API,
 	withCredentials: true, // Necesario para enviar las cookies HttpOnly
 	timeout: 5000,
 });
