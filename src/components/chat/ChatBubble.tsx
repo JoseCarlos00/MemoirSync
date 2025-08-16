@@ -9,7 +9,7 @@ import MessageSticker from './ChatBubble/MessageSticker';
 import UnsupportedMessage from './ChatBubble/UnsupportedMessage';
 import EmojiPickerComponent from './EmojiPicker';
 import ReplyPreview from './ReplyPreview';
-import { useUser } from '../../hooks/use.user';
+import { useUser } from '../../hooks/useUser';
 import api from '../../services/api'
 
 interface ChatBubbleProps {
@@ -25,8 +25,6 @@ interface ChatBubbleProps {
 	isSelected: boolean;
 	onSelectMessage: (messageId: string) => void;
 }
-
-
 
 function ChatBubble({
 	message,

@@ -3,11 +3,10 @@ import { type VirtuosoHandle } from 'react-virtuoso';
 import { MessageList } from '../components/chat/MessageList';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import { MESSAGE_FETCH_LIMIT } from '../config/constants';
-import { useUser } from '../hooks/use.user';
+import { useUser } from '../hooks/useUser';
 import { useChat } from '../hooks/useChat';
 import { useLinkingMode } from '../hooks/useLinkingMode';
 import { useMessageNavigation } from '../hooks/useMessageNavigation';
-import { useAuthStore } from '../store/authStore';
 import '../views/ChatView.css';
 
 // Componente auxiliar para mostrar estados de carga/error a pantalla completa.
@@ -24,10 +23,9 @@ const ChatStateView = ({
 );
 
 export default function ChatView() {
-	const user = useAuthStore().user;
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
 		useChat();
-	const isAdmin = useUser().isAdmin
+	const { user, isAdmin } = useUser();
 	const [localTemporaryStatus, setLocalTemporaryStatus] = useState<string | null>(null);
 	const virtuosoRef = useRef<VirtuosoHandle>(null);
 
