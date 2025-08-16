@@ -34,7 +34,6 @@ export const useLinkingMode = ({ messages, updateMessage, showTemporaryStatus }:
 
 			setSelectedMessageIds([]);
 			setIsSelectingSource(false);
-			// setIsLinkingMode(false);
 			showTemporaryStatus(`Vinculando ${idsToUpdate.length} mensaje(s)...`);
 
 			await Promise.all(
