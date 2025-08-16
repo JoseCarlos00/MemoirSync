@@ -8,7 +8,7 @@ interface UseMessageNavigationProps {
 	hasMore: boolean;
 	loading: boolean;
 	fetchMoreMessages: (options?: { limit?: number }) => Promise<void>;
-	virtuosoRef: RefObject<VirtuosoHandle>;
+	virtuosoRef: RefObject<VirtuosoHandle | null>;
 	firstItemIndex: number;
 	showTemporaryStatus: (message: string) => void;
 }
