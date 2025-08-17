@@ -1,11 +1,13 @@
 import { type RefObject } from 'react';
 import { Virtuoso, type VirtuosoHandle } from 'react-virtuoso';
 import { type Message } from '../../interfaces/message';
+import { type ListItem } from '../../views/ChatView';
 import { type User } from '../../interfaces/user';
 import ChatBubble from './ChatBubble';
+import DateSeparator from './DateSeparator';
 
 interface MessageListProps {
-	messages: Message[];
+	items: ListItem[];
 	loading: boolean;
 	hasMore: boolean;
 	error: string | null;
@@ -22,7 +24,7 @@ interface MessageListProps {
 }
 
 export const MessageList = ({
-	messages,
+	items,
 	loading,
 	hasMore,
 	error,
@@ -43,26 +45,26 @@ export const MessageList = ({
 			style={{ height: 'calc(100vh - 88px)' }}
 			firstItemIndex={firstItemIndex}
 			followOutput='auto'
-			data={messages}
-			initialTopMostItemIndex={messages.length - 1}
+			data={items}
+			initialTopMostItemIndex={items.length - 1}
 			startReached={loadMore}
-			computeItemKey={(_index, msg) => msg._id}
+			computeItemKey={(_index, item) => ('_id' in item ? item._id : item.id)}
 			increaseViewportBy={{ top: 800, bottom: 200 }}
-			itemContent={(index, msg) => {
-				const localIndex = index - firstItemIndex;
-				const prevMessage = messages[localIndex - 1];
-				const showTail = !prevMessage || prevMessage.sender !== msg.sender;
+			itemContent={(_index, item) => {
+				if ('type' in item && item.type === 'date-separator') {
+					return <DateSeparator date={item.date} />;
+				}
 
 				return (
 					<ChatBubble
-						message={msg}
-						showTail={showTail}
+						message={item}
+						showTail={item.showTail}
 						onUpdateMessage={updateMessage}
 						myUserName={user?.username}
 						onNavigateToReply={handleNavigateToReply}
-						isHighlighted={msg._id === highlightedMessageId}
+						isHighlighted={item._id === highlightedMessageId}
 						onSelectMessage={handleSelectMessage}
-						isSelected={isLinkingMode && selectedMessageIds.includes(msg._id)}
+						isSelected={isLinkingMode && selectedMessageIds.includes(item._id)}
 						isLinkingMode={isLinkingMode}
 					/>
 				);
@@ -77,7 +79,7 @@ export const MessageList = ({
 				Header: () => (
 					<div className='h-12 flex justify-center items-center text-center text-sm text-gray-400'>
 						{loading && hasMore && 'Cargando más mensajes...'}
-						{!loading && !hasMore && messages.length > 0 && 'Fin de la conversación.'}
+						{!loading && !hasMore && items.length > 0 && 'Fin de la conversación.'}
 					</div>
 				),
 				Footer: () => (

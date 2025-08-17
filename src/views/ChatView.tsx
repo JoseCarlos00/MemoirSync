@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
 import { MessageList } from '../components/chat/MessageList';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import { MESSAGE_FETCH_LIMIT } from '../config/constants';
+import { type Message } from '../interfaces/message';
 import { useUser } from '../hooks/useUser';
 import { useChat } from '../hooks/useChat';
 import { useLinkingMode } from '../hooks/useLinkingMode';
@@ -21,6 +22,8 @@ const ChatStateView = ({
 		</div>
 	</div>
 );
+
+export type ListItem = (Message & { showTail: boolean }) | { type: 'date-separator'; date: string; id: string };
 
 export default function ChatView() {
 	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
@@ -131,6 +134,35 @@ export default function ChatView() {
 		);
 	};
 
+	const listItems = useMemo(() => {
+		if (messages.length === 0) return [];
+
+		const items: ListItem[] = [];
+		let lastDate: string | null = null;
+
+		for (let i = 0; i < messages.length; i++) {
+			const currentMessage = messages[i];
+			const messageDate = new Date(currentMessage.timestamp).toDateString();
+
+			if (messageDate !== lastDate) {
+				items.push({
+					type: 'date-separator',
+					date: currentMessage.timestamp,
+					id: `date-${messageDate}`,
+				});
+				lastDate = messageDate;
+			}
+
+			const prevMessage = i > 0 ? messages[i - 1] : null;
+			const prevMessageDate = prevMessage ? new Date(prevMessage.timestamp).toDateString() : null;
+
+			const showTail = !prevMessage || prevMessage.sender !== currentMessage.sender || messageDate !== prevMessageDate;
+
+			items.push({ ...currentMessage, showTail });
+		}
+		return items;
+	}, [messages]);
+
 	// Manejo de estados iniciales (carga y error)
 	const isInitialState = messages.length === 0;
 	if (isInitialState && (loading || error)) {
@@ -168,7 +200,7 @@ export default function ChatView() {
 			)}
 
 			<MessageList
-				messages={messages}
+				items={listItems}
 				loading={loading}
 				hasMore={hasMore}
 				error={error}
