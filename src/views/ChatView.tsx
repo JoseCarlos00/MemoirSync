@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
+import { Toast } from '../components/chat/Toast';
 import { MessageList } from '../components/chat/MessageList';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
 import { MESSAGE_FETCH_LIMIT } from '../config/constants';
@@ -187,17 +188,8 @@ export default function ChatView() {
 				)}
 			</HeaderChat>
 
-			{searchStatusMessage && (
-				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-4 py-2 rounded-md shadow-lg z-20 animate-pulse'>
-					{searchStatusMessage}
-				</div>
-			)}
-
-			{localTemporaryStatus && (
-				<div className='absolute top-20 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg z-20'>
-					{localTemporaryStatus}
-				</div>
-			)}
+			{searchStatusMessage && <Toast message={searchStatusMessage} variant='pulse' />}
+			{localTemporaryStatus && <Toast message={localTemporaryStatus} />}
 
 			<MessageList
 				items={listItems}
