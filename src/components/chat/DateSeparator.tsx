@@ -7,8 +7,8 @@ interface DateSeparatorProps {
 
 function DateSeparator({ date }: DateSeparatorProps) {
 	return (
-		<div className='flex justify-center my-4'>
-			<span className='bg-gray-700 text-white text-xs font-semibold px-3 py-1 rounded-full'>
+		<div className='flex justify-center items-center p-2 bg-chat-background/80 backdrop-blur-sm'>
+			<span className='bg-gray-700/80 text-white text-xs font-semibold px-3 py-1 rounded-full'>
 				{formatDateSeparator(date)}
 			</span>
 		</div>
