@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { type Message } from '../../interfaces/message';
 import BubbleTail from './ChatBubble/BubbleTail';
 import MessageText from './ChatBubble/MessageText';
@@ -38,28 +38,27 @@ function ChatBubble({
 	onSelectMessage,
 }: ChatBubbleProps) {
 	const { isAdmin } = useUser();
-	const [openPickerId, setOpenPickerId] = useState<string | null>(null);
+	const [isPickerOpen, setIsPickerOpen] = useState(false);
 
 	const isMe = message.sender === myUserName;
-	const containerClass = isMe ? 'justify-end' : 'justify-start';
-	const bubbleAlignmentClass = isMe ? 'items-end' : 'items-start';
 
-	// Clases base para la burbuja
-	const bubbleBaseClass = 'max-w-[70%] rounded-lg shadow relative';
-	// Clases específicas del emisor
-	const senderClass = isMe ? 'bg-chat-sent' : 'bg-chat-received';
+	const bubbleClasses = [
+		'max-w-[70%] rounded-lg shadow relative p-1', // Clases base
+		isMe ? 'bg-chat-sent' : 'bg-chat-received',
+		showTail && message.type !== 'sticker' ? (isMe ? 'rounded-tr-none' : 'rounded-tl-none') : '',
+		message.type === 'sticker' ? 'bg-transparent shadow-none' : 'text-white',
+		isHighlighted ? 'message-highlight' : '',
+		isLinkingMode ? 'cursor-pointer border-2' : '',
+		isSelected ? 'border-blue-700' : 'border-transparent',
+	]
+		.filter(Boolean)
+		.join(' ');
 
-	// Clases para el "Tail" (solo si showTail es true)
-	const tailClass = showTail ? (isMe ? 'rounded-tr-none' : 'rounded-tl-none') : '';
-	// Clases especiales para stickers
-	const stickerClass = message.type === 'sticker' ? 'bg-transparent shadow-none' : 'text-white';
-
-	// Clase para el resaltado temporal
-	const highlightClass = isHighlighted ? 'message-highlight' : '';
-
-	// Nuevas clases para el modo de vinculación
-	const linkingClass = isLinkingMode ? 'cursor-pointer border-2' : '';
-	const selectedClass = isSelected ? 'border-blue-700' : 'border-transparent';
+	const handleSelectMessage = useCallback(() => {
+		if (isLinkingMode) {
+			onSelectMessage(message._id);
+		}
+	}, [isLinkingMode, message._id, onSelectMessage]);
 
 	const renderMessageContent = () => {
 		switch (message.type) {
@@ -83,50 +82,47 @@ function ChatBubble({
 		}
 	};
 
-	const togglePicker = (id: string) => {
-		setOpenPickerId((current) => (current === id ? null : id));
-	};
+	const handleTogglePicker = useCallback(() => {
+		setIsPickerOpen((prev) => !prev);
+	}, []);
 
-	const sendReaction = async (emoji: string) => {
-		setOpenPickerId(null);
+	const handleSendReaction = useCallback(
+		async (emoji: string) => {
+			setIsPickerOpen(false);
 
-		const originalReaction = message.reactionEmoji;
-		const messageId = message._id;
+			const originalReaction = message.reactionEmoji;
+			const messageId = message._id;
 
-		// 1. Actualización optimista de la UI
-		onUpdateMessage(messageId, { reactionEmoji: emoji });
+			// 1. Actualización optimista de la UI
+			onUpdateMessage(messageId, { reactionEmoji: emoji });
 
-		try {
-			// 2. Persistir el cambio en el backend
-			// Usamos PATCH para una actualización parcial del recurso del mensaje
-			await api.patch(`/messages/${messageId}/react`, { reactionEmoji: emoji });
-			// Si la petición es exitosa, no hacemos nada más. La UI ya está actualizada.
-		} catch (error) {
-			console.error('Error al actualizar la reacción:', error);
-			// 3. Rollback: Si falla la petición, revertimos la UI a su estado original.
-			onUpdateMessage(messageId, { reactionEmoji: originalReaction });
-			// Opcional: Mostrar una notificación de error al usuario.
-		}
-	};
+			try {
+				// 2. Persistir el cambio en el backend
+				await api.patch(`/messages/${messageId}/react`, { reactionEmoji: emoji });
+			} catch (error) {
+				console.error('Error al actualizar la reacción:', error);
+				// 3. Rollback: Si falla la petición, revertimos la UI a su estado original.
+				onUpdateMessage(messageId, { reactionEmoji: originalReaction });
+			}
+		},
+		[message._id, message.reactionEmoji, onUpdateMessage]
+	);
 
 	return (
 		<div
-			className={`flex flex-col relative mb-1 group ${containerClass}`}
-			onClick={() => onSelectMessage(message._id)}
+			className={`flex flex-col relative mb-1 group ${isMe ? 'justify-end' : 'justify-start'}`}
+			onClick={handleSelectMessage}
 		>
 			{showTail && message.type !== 'sticker' && <BubbleTail isMe={isMe} />}
 
-			<div className={`flex flex-col ${bubbleAlignmentClass}`}>
-				<div
-					className={`${bubbleBaseClass} ${senderClass} ${tailClass} ${stickerClass} ${highlightClass} p-1 relative ${linkingClass} ${selectedClass}`}
-				>
+			<div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+				<div className={bubbleClasses}>
 					{/* Emoji Picker */}
 					{isAdmin && (
 						<EmojiPickerComponent
-							key={message._id}
-							isOpen={openPickerId === message._id}
-							onToggle={() => togglePicker(message._id)}
-							onSendReaction={sendReaction}
+							isOpen={isPickerOpen}
+							onToggle={handleTogglePicker}
+							onSendReaction={handleSendReaction}
 							isMe={isMe}
 						/>
 					)}
