@@ -34,8 +34,9 @@ export function useChat() {
 			try {
 				const { data } = await api.get('/messages', { params: options });
 
-				const parsedMessages = parseMessage(data.messages as Message[]);
-				setMessages(parsedMessages);
+				// const parsedMessages = parseMessage(data.messages as Message[]);
+
+				setMessages(data.messages);
 				setTotalMessages(data.total);
 				setError(null); // Limpiar errores si la petición es exitosa
 
@@ -62,9 +63,9 @@ export function useChat() {
 					params: { ...options, beforeId: firstMsgId },
 				});
 
-				const parsedMessages = parseMessage(data.messages as Message[]);
+				// const parsedMessages = parseMessage(data.messages as Message[]);
 				
-				addMessages(parsedMessages);
+				addMessages(data.messages);
 				// El backend puede devolver un total actualizado (ej. si se añaden nuevos mensajes mientras navegas).
 				// Actualizarlo asegura que la condición `hasMore` sea siempre correcta.
 				if (typeof data.total === 'number') {
@@ -103,7 +104,7 @@ export function useChat() {
 	};
 }
 
-function parseMessage(messages:Message[]) {
+export function parseMessage(messages:Message[]) {
 	// Si no hay valores para reemplazar, devolvemos los mensajes originales.
 	if (!MEDIA_URL_REPLACE_FROM || !MEDIA_URL_REPLACE_TO) {
 		return messages;
