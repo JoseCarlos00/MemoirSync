@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { type VirtuosoHandle } from 'react-virtuoso';
+import { format } from 'date-fns';
 import { Toast } from '../components/chat/Toast';
 import { MessageList } from '../components/chat/MessageList';
 import HeaderChat, { type HeaderChatProps } from '../components/HeaderChat';
@@ -15,19 +16,18 @@ import '../views/ChatView.css';
 const ChatStateView = ({
 	children,
 	messagesTotal,
+	onDateSelect,
 }: { children: React.ReactNode; messagesTotal?: number } & HeaderChatProps) => (
 	<div className='bg-chat-background text-gray-200 view-chat-container h-screen flex flex-col'>
-		<HeaderChat messagesTotal={messagesTotal} />
-		<div className='flex-grow flex items-center justify-center text-center text-sm'>
-			{children}
-		</div>
+		<HeaderChat messagesTotal={messagesTotal} onDateSelect={onDateSelect} />
+		<div className='flex-grow flex items-center justify-center text-center text-sm'>{children}</div>
 	</div>
 );
 
 export type ListItem = (Message & { showTail: boolean }) | { type: 'date-separator'; date: string; id: string };
 
 export default function ChatView() {
-	const { messages, totalMessages, fetchMessages, fetchMoreMessages, loading, error, hasMore, updateMessage } =
+	const { messages, totalMessages, fetchMessages, fetchMoreMessages, fetchMessagesWhichDate, loading, error, hasMore, updateMessage } =
 		useChat();
 	const { user, isAdmin } = useUser();
 	const [localTemporaryStatus, setLocalTemporaryStatus] = useState<string | null>(null);
@@ -135,6 +135,20 @@ export default function ChatView() {
 		);
 	};
 
+	const handleDateSelect = useCallback(
+		async (date: Date) => {
+			const formattedDate = format(date, 'yyyy-MM-dd');
+			setLocalTemporaryStatus('Cargando mensajes...');
+			await fetchMessagesWhichDate({
+				limit: MESSAGE_FETCH_LIMIT,
+				startDate: formattedDate,
+				endDate: formattedDate,
+			});
+			setLocalTemporaryStatus(null);
+		},
+		[fetchMessagesWhichDate]
+	);
+
 	const listItems = useMemo(() => {
 		if (messages.length === 0) return [];
 
@@ -168,7 +182,7 @@ export default function ChatView() {
 	const isInitialState = messages.length === 0;
 	if (isInitialState && (loading || error)) {
 		return (
-			<ChatStateView messagesTotal={totalMessages}>
+			<ChatStateView messagesTotal={totalMessages} onDateSelect={handleDateSelect}>
 				{loading && <p className='text-gray-400'>Cargando mensajes...</p>}
 				{error && <p className='text-red-400'>{error}</p>}
 			</ChatStateView>
@@ -177,7 +191,7 @@ export default function ChatView() {
 
 	return (
 		<div className='bg-chat-background text-gray-200 view-chat-container'>
-			<HeaderChat messagesTotal={totalMessages}>
+			<HeaderChat messagesTotal={totalMessages} onDateSelect={handleDateSelect}>
 				{isAdmin && (
 					<button
 						onClick={toggleLinkingMode}

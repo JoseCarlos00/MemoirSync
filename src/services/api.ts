@@ -1,8 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
-import { jwtDecode } from 'jwt-decode';
 import { BASE_URL_API } from '../config/constants';
-import type { User } from '../interfaces/user'
 
 const api = axios.create({
 	baseURL: BASE_URL_API,
@@ -35,17 +33,17 @@ api.interceptors.response.use(
 
 			try {
 				// Hacer petición al endpoint de refresh
-				// El segundo argumento es `data` (null en este caso), el tercero es `config`
-				const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, null, {
+				const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
 					withCredentials: true,
 				});
 
 				const { accessToken } = res.data;
 
-				// Decodificar de forma segura el nuevo token para obtener el payload del usuario
-				const user = jwtDecode(accessToken) as User;
+				// Decodificar el nuevo token (sin validarlo, sólo leer payload)
+				const decoded = JSON.parse(atob(accessToken.split('.')[1]));
 
-				useAuthStore.getState().login({ accessToken, user });
+				// Actualizar el estado global con el nuevo token y usuario
+				useAuthStore.getState().login({ accessToken, user: decoded });
 
 				// Reintentar la petición original con el nuevo token
 				originalRequest.headers.Authorization = `Bearer ${accessToken}`;

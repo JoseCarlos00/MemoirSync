@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import ArrowIcon from './icons/Arrow'
-import MyDatePicker from './MyDatePicker'
+import MyDatePicker, { type MyDatePickerProps } from './MyDatePicker'
 
-export interface HeaderChatProps extends React.PropsWithChildren {
+export interface HeaderChatProps extends React.PropsWithChildren, MyDatePickerProps {
 	messagesTotal: number;
+	onDateSelect: (date: Date) => void;
 }
 
-function HeaderChat({ messagesTotal, children }: HeaderChatProps) {
+function HeaderChat({ messagesTotal, children, onDateSelect }: HeaderChatProps) {
 	console.log('messagesTotal', messagesTotal);
 
 	return (
@@ -59,7 +60,7 @@ function HeaderChat({ messagesTotal, children }: HeaderChatProps) {
 									></path>
 								</svg>
 							</button>
-							<MyDatePicker />
+							<MyDatePicker onDateSelect={onDateSelect} />
 						</div>
 					</div>
 				</div>

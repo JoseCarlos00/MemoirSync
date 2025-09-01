@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/style.css';
-
 import {
 	useFloating,
 	useClick,
@@ -12,11 +11,13 @@ import {
 	shift,
 	autoUpdate,
 } from '@floating-ui/react';
-
 import CalendarIcon from './icons/CalendarICon'
 
+export interface MyDatePickerProps {
+	onDateSelect: (date: Date) => void;
+}
 
-function MyDatePicker() {
+function MyDatePicker({ onDateSelect }: MyDatePickerProps) {
 	const [selected, setSelected] = useState<Date>();
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -40,10 +41,8 @@ function MyDatePicker() {
 	// Cierra el picker cuando se selecciona una fecha
 	const handleSelect = (date: Date | undefined) => {
 		setSelected(date);
-
 		if (date) {
-      console.log('Fecha seleccionada:', date.toLocaleDateString(), date);
-      
+			onDateSelect(date);
 			setIsOpen(false);
 		}
 	};
@@ -62,7 +61,7 @@ function MyDatePicker() {
 					className='text-white'
 				/>
 			</button>
-      
+
 			{isOpen && (
 				<div
 					ref={refs.setFloating}
