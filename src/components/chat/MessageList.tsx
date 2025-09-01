@@ -60,7 +60,7 @@ export const MessageList = ({
 						message={item}
 						showTail={item.showTail}
 						onUpdateMessage={updateMessage}
-						myUserName={user?.username}
+						senderName={user?.senderName}
 						onNavigateToReply={handleNavigateToReply}
 						isHighlighted={item._id === highlightedMessageId}
 						onSelectMessage={handleSelectMessage}

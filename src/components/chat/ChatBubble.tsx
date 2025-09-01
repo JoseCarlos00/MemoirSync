@@ -15,7 +15,7 @@ import api from '../../services/api'
 interface ChatBubbleProps {
 	message: Message;
 	showTail: boolean;
-	myUserName?: string;
+	senderName?: string;
 	onUpdateMessage: (messageId: string, updates: Partial<Message>) => void;
 	onNavigateToReply: (messageId: string) => void;
 	isHighlighted?: boolean;
@@ -29,7 +29,7 @@ interface ChatBubbleProps {
 function ChatBubble({
 	message,
 	showTail = false,
-	myUserName,
+	senderName,
 	onUpdateMessage,
 	onNavigateToReply,
 	isHighlighted = false,
@@ -40,7 +40,7 @@ function ChatBubble({
 	const { isAdmin } = useUser();
 	const [isPickerOpen, setIsPickerOpen] = useState(false);
 
-	const isMe = message.sender === myUserName;
+	const isMe = message.sender === senderName;
 
 	const bubbleClasses = [
 		'max-w-[70%] rounded-lg shadow relative p-1', // Clases base
