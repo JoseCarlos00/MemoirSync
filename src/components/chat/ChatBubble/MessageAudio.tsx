@@ -5,7 +5,7 @@ import { type MediaMessage } from '../../../interfaces/message';
 import PhoneIcon from '../../icons/PhoneIcon';
 
 import TimeFormat from '../TimeFormat';
-import { IMG_PREVIEW_DEFAULT } from '../../../config/constants'
+import defaultAvatar from '../../../assets/images/imagen-rota.webp';
 
 type MessageAudioProps = {
 	message: MediaMessage;
@@ -19,7 +19,7 @@ function formatTime(seconds: number) {
 	return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
-function MessageAudio({ message, isMe, avatarUrl = IMG_PREVIEW_DEFAULT }: MessageAudioProps) {
+function MessageAudio({ message, isMe, avatarUrl = defaultAvatar }: MessageAudioProps) {
 	const { mediaUrl: audioUrl } = message;
 
 	const [playing, setPlaying] = useState(false);
