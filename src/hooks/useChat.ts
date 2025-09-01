@@ -51,28 +51,6 @@ export function useChat() {
 		[setLoading, setMessages, setTotalMessages, setError]
 	);
 
-	const fetchMessagesWhichDate = useCallback(
-		async (options: FetchMessagesOptions = {}) => {
-			setLoading(true);
-			try {
-				const { data } = await api.get('/messages', { params: options });
-
-				// const parsedMessages = parseMessage(data.messages as Message[]);
-				setMessages([])
-				setMessages(data.messages);
-				setTotalMessages(data.total);
-				setError(null); // Limpiar errores si la petición es exitosa
-
-				console.log('Messages fetched:', data);
-			} catch (error) {
-				console.error('Error fetching messages:', error);
-				setError('No se pudieron cargar los mensajes.');
-			} finally {
-				setLoading(false);
-			}
-		},
-		[setLoading, setMessages, setTotalMessages, setError]
-	);
 
 	const fetchMoreMessages = useCallback(
 		async (options: FetchMessagesOptions = {}) => {
@@ -115,12 +93,25 @@ export function useChat() {
 		[updateMessageInStore]
 	);
 
+	const getFirstMessageOnDate = useCallback(async (date: string): Promise<{ messageId: string | null }> => {
+		try {
+			const response = await api.get('/messages/first-on-date', {
+				params: { date },
+			});
+
+			return response.data;
+		} catch (error: any) {
+			console.log('Error fetching first message on date:', error?.response?.data || error?.message);
+			return { messageId: null };
+		}
+	}, []);
+
 	return {
 		messages,
 		totalMessages,
 		fetchMessages,
 		fetchMoreMessages,
-		fetchMessagesWhichDate,
+		getFirstMessageOnDate,
 		loading,
 		hasMore,
 		error,

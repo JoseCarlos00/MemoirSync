@@ -27,7 +27,7 @@ const ChatStateView = ({
 export type ListItem = (Message & { showTail: boolean }) | { type: 'date-separator'; date: string; id: string };
 
 export default function ChatView() {
-	const { messages, totalMessages, fetchMessages, fetchMoreMessages, fetchMessagesWhichDate, loading, error, hasMore, updateMessage } =
+	const { messages, totalMessages, fetchMessages, fetchMoreMessages, getFirstMessageOnDate, loading, error, hasMore, updateMessage } =
 		useChat();
 	const { user, isAdmin } = useUser();
 	const [localTemporaryStatus, setLocalTemporaryStatus] = useState<string | null>(null);
@@ -136,17 +136,26 @@ export default function ChatView() {
 	};
 
 	const handleDateSelect = useCallback(
-		async (date: Date) => {
+		async (date: Date | undefined) => {
+			if (!date) return;
 			const formattedDate = format(date, 'yyyy-MM-dd');
-			setLocalTemporaryStatus('Cargando mensajes...');
-			await fetchMessagesWhichDate({
-				limit: MESSAGE_FETCH_LIMIT,
-				startDate: formattedDate,
-				endDate: formattedDate,
-			});
-			setLocalTemporaryStatus(null);
+			console.log({ formattedDate });
+			
+			showTemporaryStatus(`Buscando el primer mensaje del ${formattedDate}...`);
+
+			try {
+				const { messageId } = await getFirstMessageOnDate(formattedDate);
+				await fetchMessages({ startDate: formattedDate, limit: MESSAGE_FETCH_LIMIT })
+				// if (messageId) handleNavigateToReply(messageId);
+				// else showTemporaryStatus(`No se encontraron mensajes para el ${formattedDate}.`);
+				console.log({ messageId });
+				
+			} catch (error) {
+				console.log('Error al buscar el mensaje por fecha:', error);
+				showTemporaryStatus('Error al buscar el mensaje.');
+			}
 		},
-		[fetchMessagesWhichDate]
+		[handleNavigateToReply, showTemporaryStatus, getFirstMessageOnDate]
 	);
 
 	const listItems = useMemo(() => {
