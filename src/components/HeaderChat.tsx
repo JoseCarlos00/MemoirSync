@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import ArrowIcon from './icons/Arrow'
+import MyDatePicker from './MyDatePicker'
 
 export interface HeaderChatProps extends React.PropsWithChildren {
 	messagesTotal: number;
@@ -58,6 +59,7 @@ function HeaderChat({ messagesTotal, children }: HeaderChatProps) {
 									></path>
 								</svg>
 							</button>
+							<MyDatePicker />
 						</div>
 					</div>
 				</div>
