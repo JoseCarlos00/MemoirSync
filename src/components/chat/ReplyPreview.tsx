@@ -19,7 +19,7 @@ function formatTime(seconds: number) {
 // Componente para mostrar el nombre del remitente de la respuesta
 const RepliedSender = ({ sender }: { sender: string }) => {
 	const { user } = useAuthStore();
-	const displayName = sender === user?.username ? 'Tú' : sender;
+	const displayName = sender === user?.senderName ? 'Tú' : sender;
 	return <p className='text-blue-400 text-sm font-bold truncate'>{displayName}</p>;
 };
 
