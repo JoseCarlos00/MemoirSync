@@ -22,3 +22,5 @@ export const BASE_URL_API = 'https://localhost:3000/api';
  */
 export const MEDIA_URL_REPLACE_FROM = 'localhost:3000';
 export const MEDIA_URL_REPLACE_TO = '192.168.1.4:3000';
+
+export const IMG_PREVIEW_DEFAULT = 'https://res.cloudinary.com/dvkazbha9/image/upload/v1756736126/imagen-rota_ifllkq.webp';
